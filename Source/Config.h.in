@@ -1,0 +1,26 @@
+#pragma once
+
+// Static or dynamic link configuration
+#ifdef _WINDOWS
+#	ifdef @PROJECT_NAME@_MAKELIB	// Create a static library.
+#		define @PROJECT_NAME@_EXPORT
+#		define @PROJECT_NAME@_TEMPLATE_EXPORT
+#	elif defined @PROJECT_NAME@_MAKEDLL || defined @PROJECT_NAME@_MAKEEXE	// Create a DLL library or an EXECUTABLE.
+#		define @PROJECT_NAME@_EXPORT	__declspec(dllexport)
+#		define @PROJECT_NAME@_TEMPLATE_EXPORT
+#	elif defined @PROJECT_NAME@_USELIB	// Use a static library.
+#		define @PROJECT_NAME@_EXPORT
+#		define @PROJECT_NAME@_TEMPLATE_EXPORT
+#	else	// Use DLL library
+#		define @PROJECT_NAME@_EXPORT	__declspec(dllimport)
+#		define @PROJECT_NAME@_TEMPLATE_EXPORT	extern
+#	endif
+#else
+#	if defined(@PROJECT_NAME@_USELIB)
+#		define @PROJECT_NAME@_EXPORT
+#		define @PROJECT_NAME@_TEMPLATE_EXPORT extern
+#	else
+#		define @PROJECT_NAME@_EXPORT
+#		define @PROJECT_NAME@_TEMPLATE_EXPORT
+#	endif
+#endif
