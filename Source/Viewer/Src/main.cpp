@@ -1,15 +1,16 @@
 /*****************************************************************************/
 /*****************************************************************************/
 /*****************************************************************************/
+#include "Common.hpp"
 
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 #include <glm/glm.hpp>
+
+
+#include "RefCounted.hpp"
+
 #include <iostream>
-#include <assert.h>
-
-#include "RefCounted.h"
-
 
 template<typename T>
 constexpr unsigned int ArraySize(T array)

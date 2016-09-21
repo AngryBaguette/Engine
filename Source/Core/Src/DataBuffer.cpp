@@ -1,4 +1,4 @@
-#include <DataBuffer.h>
+#include <DataBuffer.hpp>
 
 /*****************************************************************************/
 DataBuffer* DataBuffer::create(size_t pSize)
@@ -9,5 +9,6 @@ DataBuffer* DataBuffer::create(size_t pSize)
 /*****************************************************************************/
 DataBuffer::DataBuffer(size_t pSize)
 {
-	mData.resize(pSize);
+	TODO;
+	//mData.resize(pSize);
 }

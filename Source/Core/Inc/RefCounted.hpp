@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Common.h>
+#include "Common.hpp"
 
 #include <atomic>
 
@@ -18,14 +18,14 @@ public:
 	FORCEINLINE void removeRef() const { --mRef; }
 
 	/** Get number of references **/
-	FORCEINLINE int32_t countRef() const { return mRef; }
+	FORCEINLINE int32_t countRef() const { int32_t lRef = --mRef; if (lRef EQ 0) delete this;  return lRef; }
 
 protected:
 	/** Default construtor **/
 	FORCEINLINE RefCounted() : mRef(0) {}
 
 	/** Default destructor **/
-	virtual ~RefCounted() { assert(mRef == 0); if (mRef == 0) delete this; }
+	virtual ~RefCounted() { assert(mRef EQ 0); }
 
 private:
 	/** The number of references **/
@@ -65,10 +65,10 @@ public:
 	FORCEINLINE RefPointer<T>& operator=(const RefPointer<T>& pObject) { return *this = pObject.mObject; }
 
 	/** Null test operator **/
-	FORCEINLINE operator bool() const { return mObject != nullptr; }
+	FORCEINLINE operator bool() const { return mObject NEQ nullptr; }
 
 	/** Not operator. **/
-	FORCEINLINE bool operator!() const { return mObject == nullptr; }
+	FORCEINLINE bool operator!() const { return mObject EQ nullptr; }
 
 	/** Dereferencing operator **/
 	FORCEINLINE T* operator->() const { return mObject; }

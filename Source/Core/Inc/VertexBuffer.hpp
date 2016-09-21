@@ -1,12 +1,11 @@
 #pragma once
 
-#include <CoreConfig.h>
-#include <RefCounted.h>
-#include <DataBuffer.h>
+#include "CoreConfig.h"
+#include "RefCounted.hpp"
+#include "DataBuffer.hpp"
 
 // STL
 #include <vector>
-#include <cassert>
 
 /*****************************************************************************/
 /*****************************************************************************/

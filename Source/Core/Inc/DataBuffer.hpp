@@ -1,11 +1,9 @@
 #pragma once
 
-#include <Common.h>
-#include <CoreConfig.h>
-#include <RefCounted.h>
-
-// STL
-#include <vector>
+#include "Common.hpp"
+#include "CoreConfig.h"
+#include "RefCounted.hpp"
+#include "Array.hpp""
 
 /*****************************************************************************/
 /*****************************************************************************/
@@ -32,11 +30,12 @@ protected:
 	DataBuffer(size_t pSize);
 
 	/** The data **/
-	std::vector<uint8_t> mData;
+	Array<uint8_t> mData;
 };
 
 /*****************************************************************************/
 FORCEINLINE size_t DataBuffer::size() const
 {
-	return mData.size();
+	TODO;
+	return 0;
 }

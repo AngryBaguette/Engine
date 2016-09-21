@@ -1,7 +1,7 @@
 #pragma once
 
-#include <RefCounted.h>
-#include <DataBuffer.h>
+#include <RefCounted.hpp>
+#include <DataBuffer.hpp>
 
 /*****************************************************************************/
 /*****************************************************************************/
