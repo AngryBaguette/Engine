@@ -28,3 +28,4 @@
 *.out
 *.app
 Generated_VC14.x64
+/Source/Core/Inc/CoreConfig.h
