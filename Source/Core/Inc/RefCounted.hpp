@@ -15,10 +15,10 @@ public:
 	FORCEINLINE void addRef() const { ++mRef; }
 
 	/** Remove a reference **/
-	FORCEINLINE void removeRef() const { --mRef; }
+	FORCEINLINE void removeRef() const { int32_t lRef = --mRef; if (lRef EQ 0) delete this; }
 
 	/** Get number of references **/
-	FORCEINLINE int32_t countRef() const { int32_t lRef = --mRef; if (lRef EQ 0) delete this;  return lRef; }
+	FORCEINLINE int32_t countRef() const { return mRef; }
 
 protected:
 	/** Default construtor **/

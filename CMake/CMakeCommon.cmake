@@ -6,7 +6,7 @@ STRING (REGEX MATCH "PLUGIN" _matchPlugin "${TARGET_TYPE}")
 # Get all include file
 # incExcludeList : file to exclude
 # incAppendList : file to append
-FILE(GLOB incList "Inc/*.h")
+FILE(GLOB incList "Inc/*.h*")
 FOREACH(incExcludeItem ${incExcludeList})
 	FILE(GLOB incExcludeFile "Inc/${incExcludeItem}")
 	LIST(REMOVE_ITEM incList ${incExcludeFile})

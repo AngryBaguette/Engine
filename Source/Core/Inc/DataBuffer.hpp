@@ -3,7 +3,7 @@
 #include "Common.hpp"
 #include "CoreConfig.h"
 #include "RefCounted.hpp"
-#include "Array.hpp""
+#include "Array.hpp"
 
 /*****************************************************************************/
 /*****************************************************************************/

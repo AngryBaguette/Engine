@@ -1,4 +1,5 @@
 #pragma once
+// Generated file
 
 // Static or dynamic link configuration
 #ifdef _WINDOWS
