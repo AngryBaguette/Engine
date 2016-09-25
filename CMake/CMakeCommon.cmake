@@ -50,7 +50,7 @@ TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${projectLibList})
 # to the source code
 CONFIGURE_FILE (
   "${PROJECT_SOURCE_DIR}/../Config.h.in"
-  "${PROJECT_SOURCE_DIR}/Inc/${PROJECT_NAME}Config.h"
+  "${PROJECT_SOURCE_DIR}/Inc/${PROJECT_NAME}Config.hpp"
   )
  
 # Change the postfix

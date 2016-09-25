@@ -18,5 +18,6 @@
 #define NOT !
 #define OR ||
 
+#define ARRAY_COUNT(x) (sizeof(x) / sizeof(0[x]))
 
 #define TODO assert(false AND ">> TODO <<")

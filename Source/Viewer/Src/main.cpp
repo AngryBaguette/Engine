@@ -2,26 +2,27 @@
 /*****************************************************************************/
 /*****************************************************************************/
 #include "Common.hpp"
+#include "Memory.hpp"
+#include "RefCounted.hpp"
+#include "Array.hpp"
+#include "RHI.hpp"
 
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 #include <glm/glm.hpp>
 
 
-#include "RefCounted.hpp"
-
+#include <vector>
 #include <iostream>
+#include <fstream>
+#include <string>
 
-template<typename T>
-constexpr unsigned int ArraySize(T array)
-{
-	return sizeof(array) / sizeof(T);
-}
+#define SHADER_DIR "C:\\Dev\\GitHub\\Engine\\Shader\\"
 
-#define CHECKGLERROR checkError(__FILE__,__LINE__)
+#define CHECKGLERROR CheckGLError(__FILE__, __LINE__)
 
-/** Use KHR_debug extension */
-void checkError(const char* pFile, int32_t pLine)
+/************************************************************************/
+static void CheckGLError(const char* pFile, int32_t pLine)
 {
 #define GL_GET_DEBUG_MESSAGE_LOG_COUNT 10
 	char lBuffer[2048];
@@ -50,264 +51,148 @@ void checkError(const char* pFile, int32_t pLine)
 	}
 }
 
+/************************************************************************/
+static bool CheckShaderCompilStatus(uint32_t pShader)
+{
+	// Check Fragment Shader
+	GLint result;
+	GLint messageLength;
+	glGetShaderiv(pShader, GL_COMPILE_STATUS, &result); CHECKGLERROR;
+	glGetShaderiv(pShader, GL_INFO_LOG_LENGTH, &messageLength); CHECKGLERROR;
+	if (messageLength > 0) {
+		std::vector<char> message(messageLength + 1);
+		glGetShaderInfoLog(pShader, messageLength, NULL, &message[0]); CHECKGLERROR;
+		printf("%s\n", &message[0]);
+	}
 
-// https://www.khronos.org/opengles/sdk/docs/man/xhtml/glVertexAttribPointer.xml
+	return result EQ GL_TRUE;
+}
+
+/************************************************************************/
+static bool CheckProgramLinkStatus(uint32_t pShader)
+{
+	// Check Fragment Shader
+	GLint result;
+	GLint messageLength;
+	glGetProgramiv(pShader, GL_LINK_STATUS, &result); CHECKGLERROR;
+	glGetProgramiv(pShader, GL_INFO_LOG_LENGTH, &messageLength); CHECKGLERROR;
+	if (messageLength > 0) {
+		std::vector<char> message(messageLength + 1);
+		glGetProgramInfoLog(pShader, messageLength, NULL, &message[0]); CHECKGLERROR;
+		printf("%s\n", &message[0]);
+	}
+
+	return result EQ GL_TRUE;
+}
+
+
+/** Representation in memory of attribute data */
+enum class EVertexAttributeFormat : uint8_t
+{
+	Float1,
+	Float2,
+	Float3,
+	Float4,
+	UByte4,
+	UByte4N,	// Generally used for color
+
+	Count
+};
+
+// https://www.opengl.org/sdk/docs/man4/html/glVertexAttribPointer.xhtml
+static void TranslateVertexAttributeFormat(EVertexAttributeFormat pFormat, GLenum& pType, GLint& pSize, GLboolean& pIsNormalized)
+{
+	// EVertexAttributeFormat				= {   Float1,   Float2,   Float3,   Float4,           UByte4,          UByte4N
+	static const GLenum lsToGLType[]		= { GL_FLOAT, GL_FLOAT, GL_FLOAT, GL_FLOAT, GL_UNSIGNED_BYTE, GL_UNSIGNED_BYTE };
+	static const uint8_t lsToGLSize[]		= {        1,        2,        3,        4,                4,                4 };
+	static const bool lsToGLNormalized[]	= {    false,    false,    false,     false,           false,            false };	
+	//static_assert(ARRAY_COUNT(lsToGLSize) EQ ARRAY_COUNT(lsToGLNormalized) EQ ARRAY_COUNT(lsToGLType) EQ (uint8_t)EVertexAttributeFormat::Count, "Number of enum changed, update this table");
+
+	pType = lsToGLType[(uint8_t)pFormat];
+	pSize = lsToGLSize[(uint8_t)pFormat];
+	pIsNormalized = lsToGLNormalized[(uint8_t)pIsNormalized];
+}
+
 struct VertexAttribute
 {
-	uint32_t mIndex;    // The index of the generic vertex attribute
-	uint32_t mTypeSize;    // The number of components per generic vertex attribute. Must be 1, 2, 3, or 4
-	uint32_t mType;        // GL_BYTE, GL_UNSIGNED_BYTE, GL_SHORT, GL_UNSIGNED_SHORT, GL_FIXED, or GL_FLOAT
-	uint32_t mOffset;    // Offset in bytes in the vertex buffer where start the first vertex
-	uint32_t mStride;    // Specifies the byte offset between consecutive generic vertex attributes. If stride is 0, the generic vertex attributes are understood to be tightly packed in the array. The initial value is 0.
-	uint32_t mDivisor;    // Modifies the rate at which generic vertex attributes advance when rendering multiple instances of primitives in a single draw call.If divisor is zero, the attribute at slot index advances once per vertex. If divisor is non-zero, the attribute advances once per divisor instances of the set(s) of vertices being rendered.
-	bool mIsNormalized;    // Specifies whether fixed-point data values should be normalized or converted directly as fixed-point values when they are accessed.
+	VertexAttribute(uint8_t pStreamIndex, EVertexAttributeFormat pFormat, uint32_t pOffset, uint32_t pStride, uint8_t pDivisor) : mStride(pStride), mOffset(pOffset), mStreamIndex(pStreamIndex), mFormat(pFormat), mDivisor(pDivisor) {}
+
+	uint32_t mStride;	// Specifies the byte offset between consecutive generic vertex attributes. If stride is 0, the generic vertex attributes are understood to be tightly packed in the array. The initial value is 0.
+	uint32_t mOffset;	// Offset in bytes in the vertex buffer where start the first vertex
+	uint8_t mStreamIndex;
+	EVertexAttributeFormat mFormat;
+	uint8_t mDivisor;	// Modifies the rate at which generic vertex attributes advance when rendering multiple instances of primitives in a single draw call.If divisor is zero, the attribute at slot index advances once per vertex. If divisor is non-zero, the attribute advances once per divisor instances of the set(s) of vertices being rendered.
 };
 
-
-class VertexAttributeDeclaration
+// https://www.khronos.org/opengles/sdk/docs/man/xhtml/glVertexAttribPointer.xml
+struct OpenGLVertexAttribute : public VertexAttribute
 {
+	OpenGLVertexAttribute(uint8_t pStreamIndex, EVertexAttributeFormat pFormat, uint32_t pOffset, uint32_t pStride, uint8_t pDivisor) 
+	: VertexAttribute(pStreamIndex, pFormat, pOffset, pStride, pDivisor)
+	{
+		TranslateVertexAttributeFormat(mFormat, mType, mTypeSize, mIsNormalized);
+	}
 
+	GLint mTypeSize;			// The number of components per generic vertex attribute. Must be 1, 2, 3, or 4
+	GLenum mType;				// GL_BYTE, GL_UNSIGNED_BYTE, GL_SHORT, GL_UNSIGNED_SHORT, GL_FIXED, or GL_FLOAT ...
+	GLboolean mIsNormalized;	// Specifies whether fixed-point data values should be normalized or converted directly as fixed-point values when they are accessed.
 };
 
-struct ViewportState
+typedef  Array<VertexAttribute> VertexAttributeDeclaration;
+
+/*
+class VertexFormatResource : public RenderResource
 {
-
+	//VertexAttributeDeclarationResource
 };
-
-struct ScissorState
-{
-	bool        mEnable;
-	uint32_t    mX;            // Bottom
-	uint32_t    mY;            // Left
-	uint32_t    mWidth;
-	uint32_t    mHeight;
-};
-
-struct VertexAttributeInfo
-{
-	GLenum Type;
-	GLuint StreamIndex;
-	GLuint Offset;
-	GLuint Size;
-	GLuint Divisor;
-	uint8_t bNormalized;
-	uint8_t AttributeIndex;
-	uint8_t bShouldConvertToFloat;
-};
-
-struct OpenGLState
-{
-	glm::vec4    mClearColor;
-	float        mDepthClearValue;
-	uint32_t    mStencilClearValue;
-
-	ScissorState mScissorState;
-};
-
-
-OpenGLState CurrentOpenGLState;
-OpenGLState PendingOpenGLState;
-
-enum class BufferUsage : uint32_t
-{
-	eStatic,
-	eDynamic,
-
-	eCount
-};
-
-enum class BufferAccess : uint32_t
-{
-	eReadOnly,
-	eWriteOnly,
-	eReadWrite,
-	eCount
-};
-
-/**Device resource object*/
-class ResourceObject : public RefCounted
-{
-
-};
-
-/**
+typedef RefPointer<VertexFormatResource> VertexFormatResourcePtr;
 */
-class VertexBufferObject : public ResourceObject
+
+
+/*****************************************************************************/
+std::string loadShaderFile(const std::string& pFilename)
 {
-public:
-	/* Constructor */
-	VertexBufferObject(uint32_t pSize, BufferUsage pUsage) : mSize(pSize), mUsage(pUsage) {}
-
-	/* Get the buffer usage */
-	BufferUsage getUsage() const { return mUsage; }
-
-	/* Get the data size */
-	uint32_t getSize() const { return mSize; }
-
-protected:
-	BufferUsage mUsage;
-	uint32_t    mSize;
-};
-typedef RefPointer<VertexBufferObject> VertexBufferObjectPtr;
-
-// Abstraction for all OpenGL Buffer
-// For unifom buffer, it's your job to ensure memory to be aligned
-// Target : https://www.opengl.org/sdk/docs/man/html/glBindBuffer.xhtml
-template< typename BaseType, GLenum Target >
-class OpenGLBufferObject : public BaseType
-{
-public:
-	/* Create the Buffer */
-	OpenGLBufferObject(uint32_t pSize, BufferUsage pUsage, const void* pData)
-		: BaseType(pSize, pUsage)
+	std::string source;
+	std::ifstream is(pFilename, std::ifstream::in);
+	if (is)
 	{
-		glGenBuffers(1, &mBuffer);
-		CHECKGLERROR;
-
-		assert(mBuffer >= 0);
-		glBindBuffer(Target, mBuffer);
-		CHECKGLERROR;
-
-		glBufferData(Target, mSize, pData, getUsage());
-		CHECKGLERROR;
+		std::string line = "";
+		while (std::getline(is, line))
+			source += line + "\n";
+		is.close();
 	}
-
-	/* Access the buffer */
-	void* lock(uint32_t pOffset, uint32_t pSize, BufferAccess pAccess)
-	{
-		assert(pOffset + pSize <= mSize);
-		glBindBuffer(Target, mBuffer);
-		CHECKGLERROR;
-
-		void* lBuffer = glMapBufferRange(Target, pOffset, pSize, getAccess(pAccess));
-		CHECKGLERROR;
-
-		assert(lBuffer);
-		return lBuffer;
-	}
-
-	/* Unlock the buffer */
-	void unlock()
-	{
-		GLboolean lSuccess = glUnmapBuffer(Target);
-		CHECKGLERROR;
-		assert(lSuccess);
-	}
-
-protected:
-
-	/* Convert to GL Usage enum */
-	GLenum getUsage() const
-	{
-		assert((uint32_t)mUsage < 2);
-		static const GLenum lsToGL[2] = { GL_STATIC_DRAW, GL_DYNAMIC_DRAW };
-		return lsToGL[(uint32_t)mUsage];
-	}
-
-	/* Convert to GL Access enum */
-	GLenum getAccess(BufferAccess pAccess) const
-	{
-		assert((uint32_t)pAccess < 3);
-		static const GLenum lsToGL[3] = { GL_MAP_READ_BIT, GL_MAP_WRITE_BIT , GL_MAP_READ_BIT | GL_MAP_WRITE_BIT };
-		return lsToGL[(uint32_t)pAccess];
-	}
-
-protected:
-	GLuint mBuffer;
-
-};
-typedef OpenGLBufferObject<VertexBufferObject, GL_ARRAY_BUFFER> OpenGLVertexBuffer;
-
-void RHIClear(bool pColor, const glm::vec4& pClearColor, bool pDepth, float pDepthValue, bool pStencil, uint32_t pStencilValue)
-{
-	GLbitfield lMask = 0;
-	if (pColor)
-	{
-		lMask |= GL_COLOR_BUFFER_BIT;
-		if (pClearColor != CurrentOpenGLState.mClearColor)
-		{
-			glClearColor(pClearColor.r, pClearColor.g, pClearColor.b, pClearColor.a);
-		}
-	}
-	if (pDepth)
-	{
-		lMask |= GL_DEPTH_BUFFER_BIT;
-		glClearDepthf(pDepthValue);
-	}
-	if (pStencil)
-	{
-		lMask |= GL_STENCIL_BUFFER_BIT;
-		glClearStencil(pStencilValue);
-	}
-
-	if (lMask)
-	{
-		glClear(lMask);
-	}
+	return source;
 }
 
-void RHISetScissor(bool pEnable, const glm::i32vec4& pRect)
+GLuint compileShader(const std::string& pFilename, GLenum pShaderType)
 {
-	if (pEnable)
-	{
-		glEnable(GL_SCISSOR_TEST);
-		CHECKGLERROR;
-		glScissor(pRect.x, pRect.y, pRect.z, pRect.w);
-		CHECKGLERROR;
-	}
-	else
-	{
-		glDisable(GL_SCISSOR_TEST);
-		CHECKGLERROR;
-	}
-}
+	GLuint shaderID = -1;
+	std::string sourceStr = loadShaderFile(pFilename); assert(sourceStr.size());
+	char* const source[] = { (char*)sourceStr.data() };
+	shaderID = glCreateShader(pShaderType); CHECKGLERROR;
+	glShaderSource(shaderID, 1, source, NULL); CHECKGLERROR;
+	glCompileShader(shaderID); CHECKGLERROR;
+	bool lSuccess = CheckShaderCompilStatus(shaderID);
+	assert(lSuccess);
 
-void RHISetViewport(const glm::i32vec4& pViewport, const glm::vec2& pDepthRange)
-{
-	glViewport(pViewport.x, pViewport.y, pViewport.z, pViewport.w);
-	CHECKGLERROR;
-	glDepthRange(pDepthRange.x, pDepthRange.y);
-	CHECKGLERROR;
-}
-
-VertexBufferObjectPtr RHICreateVertexBuffer(uint32_t pSize, BufferUsage pUsage, const void* pData)
-{
-	return new OpenGLVertexBuffer(pSize, pUsage, pData);
-}
-
-void* RHILockVertexBuffer(VertexBufferObjectPtr& pVB, uint32_t pOffset, uint32_t pSize, BufferAccess pAccess)
-{
-	OpenGLVertexBuffer* lVB = static_cast<OpenGLVertexBuffer*>(pVB.get());
-	void* lData = lVB->lock(pOffset, pSize, pAccess);
-	return lData;
-}
-
-void RHIUnlockVertexBuffer(VertexBufferObjectPtr& pVB)
-{
-	OpenGLVertexBuffer* lVB = static_cast<OpenGLVertexBuffer*>(pVB.get());
-	lVB->unlock();
+	return shaderID;
 }
 
 
-void RHICreateVertexAttributeDeclaration()
-{
-	// glGenVertexArrays();
-}
-
-void RHISetVertexAttribute(uint32_t pIndex, VertexBufferObjectPtr& pVB, uint32_t pStride, uint32_t pOffset)
-{
-	//glVertexAttribPointer(pIndex, )
-}
-
-void RHIDraw()
-{
-
-}
+GLuint vbo;
+GLuint ibo;
+GLuint vao;
+GLuint positionSlot = 0;
+GLuint vertShaderID;
+GLuint fragShaderID;
+GLuint programID;
 
 /*****************************************************************************/
 bool initScene()
 {
-	float positions[4][3] =
+	glm::vec3 position = { -0.25f, -0.25f, 0.0f };
+
+	Array< glm::vec3 > vertices =
 	{
 		{ -0.25f, -0.25f, 0.0f },
 		{ -0.25f, 0.25f, 0.0f },
@@ -315,12 +200,55 @@ bool initScene()
 		{ 0.25F, -0.25F, 0.0f }
 	};
 
-	//
+	Array< uint16_t > indexes =
+	{
+		0, 1, 2,
+		2, 3, 0
+	};
+
+	// Shader compilation
+	{
+		vertShaderID = compileShader(SHADER_DIR "simple.vert", GL_VERTEX_SHADER);
+		fragShaderID = compileShader(SHADER_DIR "simple.frag", GL_FRAGMENT_SHADER);
+	}
+
+	// Link shader
+	{
+		programID = glCreateProgram();
+		glAttachShader(programID, vertShaderID);
+		glAttachShader(programID, fragShaderID);
+		glLinkProgram(programID);
+		bool success = CheckProgramLinkStatus(programID); assert(success);
+	}
+	
+
+	glGenBuffers(1, &vbo); CHECKGLERROR;
+	glBindBuffer(GL_ARRAY_BUFFER, vbo); CHECKGLERROR;
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * vertices.count(), vertices.data(), GL_STATIC_DRAW); CHECKGLERROR;
+
+	glGenBuffers(1, &ibo); CHECKGLERROR;
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo); CHECKGLERROR;
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint16_t) * indexes.count(), indexes.data(), GL_STATIC_DRAW); CHECKGLERROR;
+
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+	{
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glEnableVertexAttribArray(positionSlot);
+		glVertexAttribPointer(positionSlot, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	}
+	glBindVertexArray(0);
 
 
-	VertexBufferObjectPtr vb = RHICreateVertexBuffer(sizeof(positions), BufferUsage::eStatic, positions);
-	RHILockVertexBuffer(vb, 0, vb->getSize(), BufferAccess::eWriteOnly);
+
+
+	VertexBufferResourcePtr vb = RHICreateVertexBuffer(vertices.dataSize(), EBufferUsage::Static, vertices.data());
+	RHILockVertexBuffer(vb, 0, vb->getSize(), EBufferAccess::WriteOnly);
 	RHIUnlockVertexBuffer(vb);
+
+	IndexBufferResourcePtr ib = RHICreateIndexBuffer(sizeof(uint16_t), indexes.dataSize(), EBufferUsage::Static, indexes.data());
 
 	/*
 	VertexBuffer* vb = VertexBuffer::create(4);
@@ -358,6 +286,14 @@ void render()
 {
 	RHIClear(true, glm::vec4(0, 0, 0, 0), true, 0.0f, false, 0);
 
+	glBindVertexArray(vao);
+
+	glUseProgram(programID);
+	//glDrawArrays(GL_TRIANGLES, 0, 3);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, NULL);
+
+	glBindVertexArray(0);
+
 	glutSwapBuffers();
 }
 
@@ -371,6 +307,9 @@ void idle()
 /*****************************************************************************/
 int main(int argc, char** argv)
 {
+	// Default memory allocator
+	Memory::SetMalloc(new DefaultMalloc());
+
 	glutInit(&argc, argv);
 	glutInitWindowSize(640, 480);
 	glutInitWindowPosition(10, 10);
@@ -385,19 +324,23 @@ int main(int argc, char** argv)
 	glutReshapeFunc(resize);
 
 
+	// At the moment OpenGLRHI used glew and glew use an OpenGL Context...
+	IDynamicRHI* lRenderer = IDynamicRHI::DynamicLoadRenderer("OpenGL");
+	assert(lRenderer);
+	IDynamicRHI::SetRenderer(lRenderer);
+
+
+
 	GLenum err = glewInit();
 	assert(err == GLEW_OK);
-
 	if (GLEW_VERSION_4_1)
 	{
 		std::cout << "Driver supports OpenGL 4.1\nDetails:" << std::endl;
 	}
-
 	if
 		(GLEW_KHR_debug)
 	{
 		glEnable(GL_DEBUG_OUTPUT);
-		//glDebugMessageCallback(debugFunc, NULL);
 	}
 
 

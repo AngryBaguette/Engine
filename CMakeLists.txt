@@ -28,5 +28,6 @@ endif(MSVC)
 ################################
 # Add subdirectory
 ADD_SUBDIRECTORY(Source/Core)
+ADD_SUBDIRECTORY(Source/RHIOpenGL)
 ADD_SUBDIRECTORY(Source/Viewer)
-ADD_SUBDIRECTORY(Source/VulkanSimple)
+#ADD_SUBDIRECTORY(Source/VulkanSimple)

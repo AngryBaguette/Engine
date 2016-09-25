@@ -29,3 +29,7 @@
 *.app
 Generated_VC14.x64
 /Source/Core/Inc/CoreConfig.h
+/Source/RHIOpenGL/Inc/RHIOpenGLConfig.hpp
+/Source/Core/Inc/CoreConfig.hpp
+/Source/Viewer/Inc/ViewerConfig.hpp
+/Source/VulkanSimple/Inc/VulkanSimpleConfig.hpp

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Common.hpp"
-#include "CoreConfig.h"
+#include "CoreConfig.hpp"
 #include "RefCounted.hpp"
 #include "Array.hpp"
 

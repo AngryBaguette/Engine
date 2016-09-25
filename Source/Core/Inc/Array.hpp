@@ -8,18 +8,21 @@
 #include <initializer_list>
 
 
-template<typename T, size_t InitCapacity = 8>
+/**
+ * Contiguous array
+ */
+template<typename T>
 class Array
 {
 public:
-	/** Iterator are simple pointer */
+	/** Iterator are simple pointer and can be invalidate if a reallocation happen */
 	typedef T* Iterator;
 	typedef const T* ConstIterator;
 	typedef Iterator iterator;
 	typedef ConstIterator const_iterator;
 
 	/** Default constructor */
-	Array() : mCount(0), mCapacity(InitCapacity)
+	Array() : mCount(0), mCapacity(0)
 	{
 		if (mCapacity NEQ 0)
 		{
@@ -35,9 +38,48 @@ public:
 	Array(std::initializer_list<T> pList) 
 	{
 		mCount = mCapacity = pList.size();
-		assert(mCapacity EQ 0);	// Not expected, empty initializer list should call default constructor
+		assert(mCapacity NEQ 0);	// Not expected, empty initializer list should call default constructor
 		mData = (T*)Memory::Malloc(sizeof(T) * mCapacity);
 		CopyAssignItems(mData, pList.begin(), pList.size());
+	}
+
+	/** Copy constructor */
+	Array(const Array<T>& pOther) : mCount(0), mCapacity(0), mData(NULL)
+	{ 
+		operator=(pOther);
+	}
+
+	/** Copy operator */
+	Array<T>& operator=(const Array<T>& pOther)
+	{
+		assert(this NEQ &pOther);
+		if
+			(pOther.mCount >= mCount)
+		{
+			addUninitialized(pOther.mCount - mCount);
+		}
+		else
+		{
+			DestructItems(mData + pOther.mCount, mCount - pOther.mCount);
+			mCount = pOther.mCount;
+			shrink();
+		}
+
+		assert(pOther.mCount EQ mCount);
+		CopyAssignItems(mData, pOther.mData, pOther.mCount);
+		return *this;
+	}
+
+	/** Move constructor */
+	Array(Array<T>&& pOther) : mCount(0), mCapacity(0), mData(NULL)
+	{
+		mCount = pOther.mCount;
+		mCapacity = pOther.mCapacity;
+		mData = pOther.mData;
+
+		pOther.mCount = 0;
+		pOther.mCapacity = 0;
+		pOther.mData = NULL;
 	}
 
 	/** Destructor */
@@ -46,6 +88,12 @@ public:
 		DestructItems(mData, mCount);
 		Memory::Free(mData);
 	}
+
+	/** Number of elements */
+	FORCEINLINE size_t count() const { return mCount;  }
+
+	/** Size in memory */
+	FORCEINLINE size_t dataSize() const { return mCount * sizeof(T); };
 
 	/** random accessor */
 	FORCEINLINE T& operator[](size_t pIndex)
@@ -57,8 +105,8 @@ public:
 	/** Add an element */
 	FORCEINLINE void add(const T& pElement)
 	{
-		addUninitialize(1);
-		CopyAssignItems(&mData[mCount++], &pElement, 1);
+		const size_t lIndex = addUninitialized(1);
+		CopyAssignItems(&mData[lIndex], &pElement, 1);
 	}
 
 	/** Insert an element at desired position */
@@ -67,9 +115,9 @@ public:
 		if
 			(pIndex EQ ~0 OR pIndex EQ mCount)
 		{
-			addUninitialize(1);
+			const size_t lIndex = addUninitialized(1);
 			// Insert at the end
-			CopyAssignItems(&mData[mCount++], &pElement, 1);
+			CopyAssignItems(&mData[lIndex], &pElement, 1);
 		}
 		else
 		{
@@ -137,21 +185,27 @@ public:
 		return end();
 	}
 
+	/* Realloc if necessary in order to store 'pCount' new entries */
+	size_t addUninitialized(size_t pCount)
+	{
+		const size_t lCount = mCount;
+		if (mCount + pCount > mCapacity)
+		{
+			mCapacity = (size_t)((mCount + pCount) * 1.5);
+			mData = (T*)Memory::Realloc(mData, mCapacity * sizeof(T));
+		}
+		mCount += pCount;
+		return lCount;
+	}
+
+	/** the allocated buffer data */
+	FORCEINLINE T* data() { return mData; }
+
 private:
 	T*			mData;
 	size_t		mCapacity;
 	size_t		mCount;
 
 private:
-	/* Realloc if necessary in order to store 'pCount' new entries */
-	void addUninitialize(size_t pCount)
-	{
-		assert(pCount NEQ 0);
-		if (mCount + pCount > mCapacity)
-		{
-			mCapacity = (size_t)((mCount + pCount) * 1.5);
-			mData = (T*)Memory::Realloc(mData, mCapacity * sizeof(T));
-		}
-	}
 };
 

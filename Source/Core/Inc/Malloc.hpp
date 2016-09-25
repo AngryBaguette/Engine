@@ -1,8 +1,9 @@
 #pragma once
 #include "Common.hpp"
+#include "CoreConfig.hpp"
 
 /* Malloc interface */
-class IMalloc
+class Core_EXPORT IMalloc
 {
 public:
 	virtual void* Malloc(size_t pSize) = 0;
@@ -13,7 +14,7 @@ public:
 };
 
 /* Default Malloc use malloc/free/realloc */
-class DefaultMalloc : public IMalloc
+class Core_EXPORT DefaultMalloc : public IMalloc
 {
 public:
 	DefaultMalloc() {}

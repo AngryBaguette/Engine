@@ -50,3 +50,8 @@ void Memory::Memset(void* pDst, uint8_t pValue, size_t pSize)
 {
 	memset(pDst, pValue, pSize);
 }
+
+int32_t Memory::Memcmp(void* pData1, void* pData2, size_t pSize)
+{
+	return memcmp(pData1, pData2, pSize);
+}

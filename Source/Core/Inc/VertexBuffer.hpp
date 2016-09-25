@@ -1,6 +1,6 @@
 #pragma once
 
-#include "CoreConfig.h"
+#include "CoreConfig.hpp"
 #include "RefCounted.hpp"
 #include "DataBuffer.hpp"
 

@@ -1,6 +1,7 @@
 #include "Malloc.hpp"
 #include <stdlib.h>
-#include "malloc.hpp"
+
+
 void* DefaultMalloc::Malloc(size_t pSize)
 {
 	return malloc(pSize);
