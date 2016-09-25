@@ -187,6 +187,15 @@ GLuint vertShaderID;
 GLuint fragShaderID;
 GLuint programID;
 
+
+VertexShaderResourcePtr rhi_vert;
+FragmentShaderResourcePtr rhi_frag;
+ProgramResourcePtr rhi_prog;
+
+VertexBufferResourcePtr rhi_vbo;
+IndexBufferResourcePtr rhi_ibo;
+
+
 /*****************************************************************************/
 bool initScene()
 {
@@ -243,21 +252,22 @@ bool initScene()
 
 
 
+	// RHI sample
+	rhi_vbo = RHICreateVertexBuffer(vertices.dataSize(), EBufferUsage::Static, vertices.data());
+	rhi_ibo = RHICreateIndexBuffer(sizeof(uint16_t), indexes.dataSize(), EBufferUsage::Static, indexes.data());
 
-	VertexBufferResourcePtr vb = RHICreateVertexBuffer(vertices.dataSize(), EBufferUsage::Static, vertices.data());
-	RHILockVertexBuffer(vb, 0, vb->getSize(), EBufferAccess::WriteOnly);
-	RHIUnlockVertexBuffer(vb);
+	{
+		std::string lCode = loadShaderFile(SHADER_DIR "simple.vert");
+		rhi_vert = RHICreateVertexShader(lCode.c_str());
+	}
 
-	IndexBufferResourcePtr ib = RHICreateIndexBuffer(sizeof(uint16_t), indexes.dataSize(), EBufferUsage::Static, indexes.data());
+	{
+		std::string lCode = loadShaderFile(SHADER_DIR "simple.frag");
+		rhi_frag = RHICreateFragmentShader(lCode.c_str());
+	}
 
-	/*
-	VertexBuffer* vb = VertexBuffer::create(4);
-	vb->addAttribute(VertexBuffer::ePosition, 3, VertexBuffer::eFloat);
-	//vb->addAttribute(VertexBuffer::eNormal, 3, VertexBuffer::eFloat);
-	//vb->addAttribute(VertexBuffer::eTexCoord0, 2, VertexBuffer::eFloat);
-	vb->allocate();
-	vb->setAttributeValue(VertexBuffer::ePosition, 0, (uint8_t*)positions, 4);
-	*/
+	rhi_prog = RHICreateProgram(rhi_vert, rhi_frag);
+
 
 	// Load sponza
 	/*
@@ -287,12 +297,15 @@ void render()
 	RHIClear(true, glm::vec4(0, 0, 0, 0), true, 0.0f, false, 0);
 
 	glBindVertexArray(vao);
-
 	glUseProgram(programID);
 	//glDrawArrays(GL_TRIANGLES, 0, 3);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, NULL);
-
 	glBindVertexArray(0);
+
+
+	//RHISetStream
+	//RHISetProgram(rhi_prog);
+	//RHIDrawPrimitive(EPrimitiveType::Triangles, 0, 2);
 
 	glutSwapBuffers();
 }

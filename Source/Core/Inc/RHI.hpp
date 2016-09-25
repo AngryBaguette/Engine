@@ -8,7 +8,9 @@
 class Core_EXPORT IDynamicRHI
 {
 public:
-	/** */
+	/**Load the dynamic library and instantiate the RHI 
+	 * @param pName	The RHI name. (ie. OpenGL)
+	 */
 	static IDynamicRHI* DynamicLoadRenderer(const char* pName);
 
 	/** Set the renderer */
@@ -24,6 +26,13 @@ public:
 	virtual IndexBufferResourcePtr RHICreateIndexBuffer(uint8_t pStride, uint32_t pSize, EBufferUsage pUsage, const void* pData) = 0;
 	virtual void* RHILockIndexBuffer(IndexBufferResourcePtr& pVB, uint32_t pOffset, uint32_t pSize, EBufferAccess pAccess) = 0;
 	virtual void RHIUnlockIndexBuffer(IndexBufferResourcePtr& pVB) = 0;
+
+	virtual VertexShaderResourcePtr RHICreateVertexShader(const char* pSource) = 0;
+	virtual FragmentShaderResourcePtr RHICreateFragmentShader(const char* pSource) = 0;
+	virtual ProgramResourcePtr RHICreateProgram(VertexShaderResourcePtr& pVertex, FragmentShaderResourcePtr& pFragment) = 0;
+	virtual void RHIDrawPrimitive(EPrimitiveType pType, uint32_t pStartIndex, uint32_t pCount, uint32_t pNumInstances = 0 ) = 0;
+	virtual void RHIDrawIndexedPrimitive(EPrimitiveType pType, IndexBufferResourcePtr& pIndexBuffer, uint32_t pNumInstances = 0) = 0;
+
 
 private:
 	static IDynamicRHI* msRHI;
@@ -68,4 +77,29 @@ FORCEINLINE static IndexBufferResourcePtr RHICreateIndexBuffer(uint8_t pStride, 
 FORCEINLINE static void* RHILockIndexBuffer(IndexBufferResourcePtr& pVB, uint32_t pOffset, uint32_t pSize, EBufferAccess pAccess)
 {
 	return IDynamicRHI::Get()->RHILockIndexBuffer(pVB, pOffset, pSize, pAccess);
+}
+
+FORCEINLINE static VertexShaderResourcePtr RHICreateVertexShader(const char* pSource)
+{
+	return IDynamicRHI::Get()->RHICreateVertexShader(pSource);
+}
+
+FORCEINLINE static FragmentShaderResourcePtr RHICreateFragmentShader(const char* pSource)
+{
+	return IDynamicRHI::Get()->RHICreateFragmentShader(pSource);
+}
+
+FORCEINLINE static ProgramResourcePtr RHICreateProgram(VertexShaderResourcePtr& pVertex, FragmentShaderResourcePtr& pFragment)
+{
+	return IDynamicRHI::Get()->RHICreateProgram(pVertex, pFragment);
+}
+
+FORCEINLINE static void RHIDrawPrimitive(EPrimitiveType pType, uint32_t pStartIndex, uint32_t pCount, uint32_t pNumInstances = 0)
+{
+	return IDynamicRHI::Get()->RHIDrawPrimitive(pType, pStartIndex, pCount, pNumInstances);
+}
+
+FORCEINLINE static void RHIDrawIndexedPrimitive(EPrimitiveType pType, IndexBufferResourcePtr& pIndexBuffer, uint32_t pNumInstances = 0)
+{
+	return IDynamicRHI::Get()->RHIDrawIndexedPrimitive(pType, pIndexBuffer, pNumInstances);
 }

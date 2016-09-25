@@ -181,3 +181,31 @@ void OpenGLRHI::RHIUnlockIndexBuffer(IndexBufferResourcePtr& pVB)
 	OpenGLIndexBufferResource* lVB = static_cast<OpenGLIndexBufferResource*>(pVB.get());
 	lVB->unlock();
 }
+
+/************************************************************************/
+VertexShaderResourcePtr OpenGLRHI::RHICreateVertexShader(const char* pSource)
+{
+	return nullptr;
+}
+
+/************************************************************************/
+FragmentShaderResourcePtr OpenGLRHI::RHICreateFragmentShader(const char * pSource)
+{
+	return FragmentShaderResourcePtr();
+}
+
+/************************************************************************/
+ProgramResourcePtr OpenGLRHI::RHICreateProgram(VertexShaderResourcePtr & pVertex, FragmentShaderResourcePtr & pFragment)
+{
+	return ProgramResourcePtr();
+}
+
+/************************************************************************/
+void OpenGLRHI::RHIDrawPrimitive(EPrimitiveType pType, uint32_t pStartIndex, uint32_t pCount, uint32_t pNumInstances)
+{
+}
+
+/************************************************************************/
+void OpenGLRHI::RHIDrawIndexedPrimitive(EPrimitiveType pType, IndexBufferResourcePtr& pIndexBuffer, uint32_t pNumInstances)
+{
+}

@@ -2,6 +2,22 @@
 #include "Common.hpp"
 #include "RefCounted.hpp"
 
+
+enum class EPrimitiveType : uint8_t
+{
+	Triangles,
+	TriangleFan,
+	TriangleStrip,
+
+	Lines,
+	LineStrip,
+	LineLoop,
+
+	Points,
+
+	Count
+};
+
 enum class EBufferUsage : uint8_t
 {
 	Static,
@@ -15,6 +31,7 @@ enum class EBufferAccess : uint8_t
 	ReadOnly,
 	WriteOnly,
 	ReadWrite,
+
 	Count
 };
 
@@ -65,3 +82,22 @@ protected:
 	uint8_t		mStride;
 };
 typedef RefPointer<IndexBufferResource> IndexBufferResourcePtr;
+
+
+class VertexShaderResource : public RenderResource
+{
+
+};
+typedef RefPointer<VertexShaderResource> VertexShaderResourcePtr;
+
+class FragmentShaderResource : public RenderResource
+{
+
+};
+typedef RefPointer<FragmentShaderResource> FragmentShaderResourcePtr;
+
+class ProgramResource : public RenderResource
+{
+
+};
+typedef RefPointer<ProgramResource> ProgramResourcePtr;

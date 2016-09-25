@@ -47,7 +47,7 @@ public:
 	/** Constructor **/
 	FORCEINLINE RefPointer() : mObject(nullptr) {}
 	FORCEINLINE RefPointer(T* pObject) : mObject(pObject) { if (mObject) mObject->addRef(); }
-	FORCEINLINE RefPointer(const T* pObject) : mObject(pObject) { if (mObject) mObject->addRef(); }
+	//FORCEINLINE RefPointer(const T* pObject) : mObject(pObject) { if (mObject) mObject->addRef(); }
 	FORCEINLINE RefPointer(RefPointer<T>& pRef) : mObject(pRef.mObject) { if (mObject) mObject->addRef(); }
 
 	/** Assigment operator **/

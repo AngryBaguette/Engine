@@ -30,4 +30,10 @@ public:
 	virtual IndexBufferResourcePtr RHICreateIndexBuffer(uint8_t pStride, uint32_t pSize, EBufferUsage pUsage, const void* pData) override final;
 	virtual void* RHILockIndexBuffer(IndexBufferResourcePtr& pVB, uint32_t pOffset, uint32_t pSize, EBufferAccess pAccess) override final;
 	virtual void RHIUnlockIndexBuffer(IndexBufferResourcePtr& pVB) override final;
+
+	virtual VertexShaderResourcePtr RHICreateVertexShader(const char* pSource) override final;
+	virtual FragmentShaderResourcePtr RHICreateFragmentShader(const char* pSource) override final;
+	virtual ProgramResourcePtr RHICreateProgram(VertexShaderResourcePtr& pVertex, FragmentShaderResourcePtr& pFragment) override final;
+	virtual void RHIDrawPrimitive(EPrimitiveType pType, uint32_t pStartIndex, uint32_t pCount, uint32_t pNumInstances = 0) override final;
+	virtual void RHIDrawIndexedPrimitive(EPrimitiveType pType, IndexBufferResourcePtr& pIndexBuffer, uint32_t pNumInstances = 0) override final;
 };
