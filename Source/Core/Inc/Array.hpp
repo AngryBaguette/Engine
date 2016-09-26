@@ -30,7 +30,20 @@ public:
 		}
 		else
 		{
-			mData = NULL;
+			mData = nullptr;
+		}
+	}
+
+	/** Preallocated constructor */
+	Array(uint32_t pCount) : mCount(pCount), mCapacity(pCount)
+	{
+		if (mCount NEQ 0)
+		{
+			mData = (T*)Memory::Malloc(sizeof(T) * mCapacity);
+		}
+		else
+		{
+			mData = nullptr;
 		}
 	}
 
@@ -44,7 +57,7 @@ public:
 	}
 
 	/** Copy constructor */
-	Array(const Array<T>& pOther) : mCount(0), mCapacity(0), mData(NULL)
+	Array(const Array<T>& pOther) : mCount(0), mCapacity(0), mData(nullptr)
 	{ 
 		operator=(pOther);
 	}
@@ -71,7 +84,7 @@ public:
 	}
 
 	/** Move constructor */
-	Array(Array<T>&& pOther) : mCount(0), mCapacity(0), mData(NULL)
+	Array(Array<T>&& pOther) : mCount(0), mCapacity(0), mData(nullptr)
 	{
 		mCount = pOther.mCount;
 		mCapacity = pOther.mCapacity;
@@ -79,7 +92,7 @@ public:
 
 		pOther.mCount = 0;
 		pOther.mCapacity = 0;
-		pOther.mData = NULL;
+		pOther.mData = nullptr;
 	}
 
 	/** Destructor */
@@ -154,7 +167,7 @@ public:
 			if(mCapacity EQ 0)
 			{
 				Memory::Free(mData);
-				mData = NULL;
+				mData = nullptr;
 			}
 			else
 			{

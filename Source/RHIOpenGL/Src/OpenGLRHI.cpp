@@ -1,5 +1,6 @@
 #include "OpenGLRHI.hpp"
 #include "OpenGLRHIResource.hpp"
+#include "OpenGLShader.hpp"
 
 #include <glm/glm.hpp>
 #include <GL/glew.h>
@@ -54,40 +55,6 @@ void OpenGLRHI::CheckError(const char* pFile, int32_t pLine)
 			offset += lengths[i];
 		}
 	}
-}
-
-/************************************************************************/
-bool OpenGLRHI::CheckShaderCompilStatus(uint32_t pShader)
-{
-	// Check Fragment Shader
-	GLint result;
-	GLint messageLength;
-	glGetShaderiv(pShader, GL_COMPILE_STATUS, &result); CHECKGLERROR;
-	glGetShaderiv(pShader, GL_INFO_LOG_LENGTH, &messageLength); CHECKGLERROR;
-	if (messageLength > 0) {
-		std::vector<char> message(messageLength + 1);
-		glGetShaderInfoLog(pShader, messageLength, NULL, &message[0]); CHECKGLERROR;
-		printf("%s\n", &message[0]);
-	}
-
-	return result EQ GL_TRUE;
-}
-
-/************************************************************************/
-bool OpenGLRHI::CheckProgramLinkStatus(uint32_t pShader)
-{
-	// Check Fragment Shader
-	GLint result;
-	GLint messageLength;
-	glGetProgramiv(pShader, GL_LINK_STATUS, &result); CHECKGLERROR;
-	glGetProgramiv(pShader, GL_INFO_LOG_LENGTH, &messageLength); CHECKGLERROR;
-	if (messageLength > 0) {
-		std::vector<char> message(messageLength + 1);
-		glGetProgramInfoLog(pShader, messageLength, NULL, &message[0]); CHECKGLERROR;
-		printf("%s\n", &message[0]);
-	}
-
-	return result EQ GL_TRUE;
 }
 
 /************************************************************************/
@@ -185,7 +152,7 @@ void OpenGLRHI::RHIUnlockIndexBuffer(IndexBufferResourcePtr& pVB)
 /************************************************************************/
 VertexShaderResourcePtr OpenGLRHI::RHICreateVertexShader(const char* pSource)
 {
-	return nullptr;
+	return new OpenGLVertexShaderResource();
 }
 
 /************************************************************************/
