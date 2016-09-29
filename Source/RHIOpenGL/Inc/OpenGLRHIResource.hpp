@@ -3,6 +3,12 @@
 #include <RHIResource.hpp>
 #include <GL/glew.h>
 
+FORCEINLINE GLenum TranslatePrimitiveType(EPrimitiveType pType)
+{
+	GLenum lsToGL[] = { GL_TRIANGLES, GL_TRIANGLE_FAN, GL_TRIANGLE_STRIP, GL_LINES, GL_LINE_STRIP, GL_LINE_LOOP, GL_POINTS };
+	return lsToGL[(uint8_t)pType];
+}
+
 // Abstraction for all OpenGL Buffer
 // For unifom buffer, it's your job to ensure memory to be aligned
 // Target : https://www.opengl.org/sdk/docs/man/html/glBindBuffer.xhtml

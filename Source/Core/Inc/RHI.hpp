@@ -4,6 +4,7 @@
 #include "RHIResource.hpp"
 #include <glm/fwd.hpp>
 
+#include <string>
 
 class Core_EXPORT IDynamicRHI
 {
@@ -27,8 +28,8 @@ public:
 	virtual void* RHILockIndexBuffer(IndexBufferResourcePtr& pVB, uint32_t pOffset, uint32_t pSize, EBufferAccess pAccess) = 0;
 	virtual void RHIUnlockIndexBuffer(IndexBufferResourcePtr& pVB) = 0;
 
-	virtual VertexShaderResourcePtr RHICreateVertexShader(const char* pSource) = 0;
-	virtual FragmentShaderResourcePtr RHICreateFragmentShader(const char* pSource) = 0;
+	virtual VertexShaderResourcePtr RHICreateVertexShader(const std::string& pSource) = 0;
+	virtual FragmentShaderResourcePtr RHICreateFragmentShader(const std::string& pSource) = 0;
 	virtual ProgramResourcePtr RHICreateProgram(VertexShaderResourcePtr& pVertex, FragmentShaderResourcePtr& pFragment) = 0;
 	virtual void RHIDrawPrimitive(EPrimitiveType pType, uint32_t pStartIndex, uint32_t pCount, uint32_t pNumInstances = 0 ) = 0;
 	virtual void RHIDrawIndexedPrimitive(EPrimitiveType pType, IndexBufferResourcePtr& pIndexBuffer, uint32_t pNumInstances = 0) = 0;

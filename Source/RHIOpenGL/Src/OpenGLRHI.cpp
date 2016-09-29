@@ -150,26 +150,36 @@ void OpenGLRHI::RHIUnlockIndexBuffer(IndexBufferResourcePtr& pVB)
 }
 
 /************************************************************************/
-VertexShaderResourcePtr OpenGLRHI::RHICreateVertexShader(const char* pSource)
+VertexShaderResourcePtr OpenGLRHI::RHICreateVertexShader(const std::string& pSource)
 {
-	return new OpenGLVertexShaderResource();
+	OpenGLVertexShaderResource* resource = new OpenGLVertexShaderResource(pSource);
+	bool lSuccess = resource->compileShader();
+	return resource;
 }
 
 /************************************************************************/
-FragmentShaderResourcePtr OpenGLRHI::RHICreateFragmentShader(const char * pSource)
+FragmentShaderResourcePtr OpenGLRHI::RHICreateFragmentShader(const std::string& pSource)
 {
-	return FragmentShaderResourcePtr();
+	OpenGLFragmentShaderResource* resource = new OpenGLFragmentShaderResource(pSource);
+	bool lSuccess = resource->compileShader();
+	return resource;
 }
 
 /************************************************************************/
 ProgramResourcePtr OpenGLRHI::RHICreateProgram(VertexShaderResourcePtr & pVertex, FragmentShaderResourcePtr & pFragment)
 {
-	return ProgramResourcePtr();
+	OpenGLProgramResource* resource = new OpenGLProgramResource(static_cast<OpenGLVertexShaderResource*>(pVertex.get()), static_cast<OpenGLFragmentShaderResource*>(pFragment.get()));
+	bool lSuccess = resource->linkShader();
+	return resource;
 }
 
 /************************************************************************/
 void OpenGLRHI::RHIDrawPrimitive(EPrimitiveType pType, uint32_t pStartIndex, uint32_t pCount, uint32_t pNumInstances)
 {
+	// Bind Program
+	// Set Uniform
+	// Bind VAO
+	glDrawElements(TranslatePrimitiveType(pType), 6, GL_UNSIGNED_SHORT, NULL);
 }
 
 /************************************************************************/
