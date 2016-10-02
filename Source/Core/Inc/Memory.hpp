@@ -7,7 +7,7 @@
 class Core_EXPORT Memory
 {
 public:
-	static void SetMalloc(IMalloc* pMalloc);
+	static void SetMalloc(IIMalloc* pMalloc);
 
 	static void* Malloc(size_t pSize);
 
@@ -31,6 +31,6 @@ private:
 	/**
 	 * The base allocator
 	 */
-	static IMalloc*	msMalloc;
+	static IIMalloc*	msMalloc;
 
 };

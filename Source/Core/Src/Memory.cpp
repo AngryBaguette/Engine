@@ -3,9 +3,9 @@
 #include <string.h>
 
 
-IMalloc* Memory::msMalloc = NULL;
+IIMalloc* Memory::msMalloc = NULL;
 
-void Memory::SetMalloc(IMalloc* pMalloc)
+void Memory::SetMalloc(IIMalloc* pMalloc)
 {
 	assert(msMalloc == NULL);
 	msMalloc = pMalloc;

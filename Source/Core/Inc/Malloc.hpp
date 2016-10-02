@@ -3,7 +3,7 @@
 #include "CoreConfig.hpp"
 
 /* Malloc interface */
-class Core_EXPORT IMalloc
+class Core_EXPORT IIMalloc
 {
 public:
 	virtual void* Malloc(size_t pSize) = 0;
@@ -14,7 +14,7 @@ public:
 };
 
 /* Default Malloc use malloc/free/realloc */
-class Core_EXPORT DefaultMalloc : public IMalloc
+class Core_EXPORT DefaultMalloc : public IIMalloc
 {
 public:
 	DefaultMalloc() {}
