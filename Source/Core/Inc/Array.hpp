@@ -7,7 +7,6 @@
 
 #include <initializer_list>
 
-
 /**
  * Contiguous array
  */
@@ -79,7 +78,7 @@ public:
 		}
 
 		assert(pOther.mCount EQ mCount);
-		CopyAssignItems(mData, pOther.mData, pOther.mCount);
+		ConstructItems(mData, pOther.mData, pOther.mCount);
 		return *this;
 	}
 
@@ -119,7 +118,7 @@ public:
 	FORCEINLINE void add(const T& pElement)
 	{
 		const size_t lIndex = addUninitialized(1);
-		CopyAssignItems(&mData[lIndex], &pElement, 1);
+		ConstructItems(&mData[lIndex], &pElement, 1);
 	}
 
 	/** Insert an element at desired position */
@@ -130,7 +129,7 @@ public:
 		{
 			const size_t lIndex = addUninitialized(1);
 			// Insert at the end
-			CopyAssignItems(&mData[lIndex], &pElement, 1);
+			ConstructItems(&mData[lIndex], &pElement, 1);
 		}
 		else
 		{
@@ -153,7 +152,7 @@ public:
 			}
 
 			// Finally assign the new
-			CopyAssignItems(&mData[pIndex], &pElement, 1);
+			ConstructItems(&mData[pIndex], &pElement, 1);
 			++mCount;
 		}
 	}
