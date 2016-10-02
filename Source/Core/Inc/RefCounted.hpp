@@ -1,14 +1,14 @@
 #pragma once
 
 #include "Common.hpp"
-
+#include "CoreConfig.hpp"
 #include <atomic>
 
 /*****************************************************************************/
 /*****************************************************************************/
 /*****************************************************************************/
 /** Intrusive reference counter **/
-class RefCounted
+class Core_EXPORT RefCounted
 {
 public:
 	/** Add a reference **/
@@ -29,7 +29,10 @@ protected:
 
 private:
 	/** The number of references **/
+#pragma warning( push )
+#pragma warning( disable : 4251 )
 	mutable std::atomic<int32_t> mRef;
+#pragma warning(pop)
 };
 
 /*****************************************************************************/
@@ -47,8 +50,11 @@ public:
 	/** Constructor **/
 	FORCEINLINE RefPointer() : mObject(nullptr) {}
 	FORCEINLINE RefPointer(T* pObject) : mObject(pObject) { if (mObject) mObject->addRef(); }
-	//FORCEINLINE RefPointer(const T* pObject) : mObject(pObject) { if (mObject) mObject->addRef(); }
+	FORCEINLINE RefPointer(const T* pObject) : mObject(pObject) { if (mObject) mObject->addRef(); }
 	FORCEINLINE RefPointer(RefPointer<T>& pRef) : mObject(pRef.mObject) { if (mObject) mObject->addRef(); }
+	FORCEINLINE RefPointer(const RefPointer<T>& pRef) : mObject(pRef.mObject) { if (mObject) mObject->addRef(); }
+
+	FORCEINLINE ~RefPointer() { *this = nullptr; }
 
 	/** Assigment operator **/
 	FORCEINLINE RefPointer<T>& operator=(T *pObject) 
