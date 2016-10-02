@@ -24,14 +24,16 @@ public:
 	virtual void RHIUnlockVertexBuffer(VertexBufferResourcePtr& pVB) override final;
 	virtual IndexBufferResourcePtr RHICreateIndexBuffer(uint8_t pStride, uint32_t pSize, EBufferUsage pUsage, const void* pData) override final;
 	virtual void* RHILockIndexBuffer(IndexBufferResourcePtr& pVB, uint32_t pOffset, uint32_t pSize, EBufferAccess pAccess) override final;
-	virtual void RHIUnlockIndexBuffer(IndexBufferResourcePtr& pVB) override final;
-
-	
+	virtual void RHIUnlockIndexBuffer(IndexBufferResourcePtr& pIB) override final;
 
 	virtual VertexShaderResourcePtr RHICreateVertexShader(const std::string& pSource) override final;
 	virtual FragmentShaderResourcePtr RHICreateFragmentShader(const std::string& pSource) override final;
 	virtual ProgramResourcePtr RHICreateProgram(VertexShaderResourcePtr& pVertex, FragmentShaderResourcePtr& pFragment) override final;
+	virtual void RHISetProgram(ProgramResourcePtr& pProgram) override final;
 
-	virtual void RHIDrawPrimitive(EPrimitiveType pType, uint32_t pStartIndex, uint32_t pCount, uint32_t pNumInstances = 0) override final;
-	virtual void RHIDrawIndexedPrimitive(EPrimitiveType pType, IndexBufferResourcePtr& pIndexBuffer, uint32_t pNumInstances = 0) override final;
+	virtual void RHIDrawIndexedPrimitive(EPrimitiveType pType, uint32_t pStartIndex, uint32_t pCount, uint32_t pNumInstances = 1) override final;
+
+
+	virtual VertexInputLayoutResourcePtr RHICreateVertexInputLayout(const VertexInputLayout& pLayout)  override final;
+	virtual void RHISetVertexInputLayout(VertexInputLayoutResourcePtr& pLayout)  override final;
 };

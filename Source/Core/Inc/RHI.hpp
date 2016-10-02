@@ -31,9 +31,15 @@ public:
 	virtual VertexShaderResourcePtr RHICreateVertexShader(const std::string& pSource) = 0;
 	virtual FragmentShaderResourcePtr RHICreateFragmentShader(const std::string& pSource) = 0;
 	virtual ProgramResourcePtr RHICreateProgram(VertexShaderResourcePtr& pVertex, FragmentShaderResourcePtr& pFragment) = 0;
-	virtual void RHIDrawPrimitive(EPrimitiveType pType, uint32_t pStartIndex, uint32_t pCount, uint32_t pNumInstances = 0 ) = 0;
-	virtual void RHIDrawIndexedPrimitive(EPrimitiveType pType, IndexBufferResourcePtr& pIndexBuffer, uint32_t pNumInstances = 0) = 0;
+	virtual void RHISetProgram(ProgramResourcePtr& pProgram) = 0;
 
+
+	virtual VertexInputLayoutResourcePtr RHICreateVertexInputLayout(const VertexInputLayout& pLayout) = 0;
+	virtual void RHISetVertexInputLayout(VertexInputLayoutResourcePtr& pLayout) = 0;
+
+	/** Use current vertex input layout information */
+	//virtual void RHIDrawPrimitive(EPrimitiveType pType, uint32_t pStartIndex, uint32_t pCount, uint32_t pNumInstances = 0 ) = 0;
+	virtual void RHIDrawIndexedPrimitive(EPrimitiveType pType, uint32_t pStartIndex, uint32_t pCount, uint32_t pNumInstances = 1) = 0;
 
 private:
 	static IDynamicRHI* msRHI;
@@ -95,12 +101,29 @@ FORCEINLINE static ProgramResourcePtr RHICreateProgram(VertexShaderResourcePtr& 
 	return IDynamicRHI::Get()->RHICreateProgram(pVertex, pFragment);
 }
 
+/*
 FORCEINLINE static void RHIDrawPrimitive(EPrimitiveType pType, uint32_t pStartIndex, uint32_t pCount, uint32_t pNumInstances = 0)
 {
-	return IDynamicRHI::Get()->RHIDrawPrimitive(pType, pStartIndex, pCount, pNumInstances);
+	IDynamicRHI::Get()->RHIDrawPrimitive(pType, pStartIndex, pCount, pNumInstances);
+}
+*/
+
+FORCEINLINE static void RHIDrawIndexedPrimitive(EPrimitiveType pType, uint32_t pStartIndex, uint32_t pCount, uint32_t pNumInstances = 1)
+{
+	IDynamicRHI::Get()->RHIDrawIndexedPrimitive(pType, pStartIndex, pCount, pNumInstances);
 }
 
-FORCEINLINE static void RHIDrawIndexedPrimitive(EPrimitiveType pType, IndexBufferResourcePtr& pIndexBuffer, uint32_t pNumInstances = 0)
+FORCEINLINE static void RHISetProgram(ProgramResourcePtr& pProgram)
 {
-	return IDynamicRHI::Get()->RHIDrawIndexedPrimitive(pType, pIndexBuffer, pNumInstances);
+	IDynamicRHI::Get()->RHISetProgram(pProgram);
+}
+
+FORCEINLINE static VertexInputLayoutResourcePtr RHICreateVertexInputLayout(const VertexInputLayout& pLayout)
+{
+	return IDynamicRHI::Get()->RHICreateVertexInputLayout(pLayout);
+}
+
+FORCEINLINE static void RHISetVertexInputLayout(VertexInputLayoutResourcePtr& pLayout)
+{
+	IDynamicRHI::Get()->RHISetVertexInputLayout(pLayout);
 }

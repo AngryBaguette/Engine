@@ -174,15 +174,39 @@ ProgramResourcePtr OpenGLRHI::RHICreateProgram(VertexShaderResourcePtr & pVertex
 }
 
 /************************************************************************/
-void OpenGLRHI::RHIDrawPrimitive(EPrimitiveType pType, uint32_t pStartIndex, uint32_t pCount, uint32_t pNumInstances)
+/*void OpenGLRHI::RHIDrawPrimitive(EPrimitiveType pType, uint32_t pStartIndex, uint32_t pCount, uint32_t pNumInstances)
 {
 	// Bind Program
 	// Set Uniform
 	// Bind VAO
-	glDrawElements(TranslatePrimitiveType(pType), 6, GL_UNSIGNED_SHORT, NULL);
+
+//	glDrawElements(TranslatePrimitiveType(pType), 6, GL_UNSIGNED_SHORT, NULL);
+	TODO;
+}*/
+
+/************************************************************************/
+void OpenGLRHI::RHIDrawIndexedPrimitive(EPrimitiveType pType, uint32_t pStartIndex, uint32_t pCount, uint32_t pNumInstances)
+{
+	//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, NULL);
+	glDrawElements(TranslatePrimitiveType(pType), TranslatePrimitiveTypeSize(pType,pCount), GL_UNSIGNED_SHORT, BUFFER_OFFSET(pStartIndex*sizeof(uint16_t)));
 }
 
 /************************************************************************/
-void OpenGLRHI::RHIDrawIndexedPrimitive(EPrimitiveType pType, IndexBufferResourcePtr& pIndexBuffer, uint32_t pNumInstances)
+void OpenGLRHI::RHISetProgram(ProgramResourcePtr& pProgram)
 {
+	OpenGLProgramResource* resource = static_cast<OpenGLProgramResource*>(pProgram.get());
+	glUseProgram(resource->handle());
+}
+
+/************************************************************************/
+VertexInputLayoutResourcePtr OpenGLRHI::RHICreateVertexInputLayout(const VertexInputLayout& pLayout)
+{
+	return new OpenGLVertexInputLayoutResource(pLayout);
+}
+
+/************************************************************************/
+void OpenGLRHI::RHISetVertexInputLayout(VertexInputLayoutResourcePtr& pLayout)
+{
+	OpenGLVertexInputLayoutResource* resource = static_cast<OpenGLVertexInputLayoutResource*>(pLayout.get());
+	glBindVertexArray(resource->handle());
 }

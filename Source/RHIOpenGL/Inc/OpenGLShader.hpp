@@ -62,6 +62,7 @@ public:
 	/** On success obtain an handle */
 	bool linkShader();
 
+	GLuint handle() const { return mHandle;  }
 protected:
 	OpenGLVertexShaderResourcePtr mVertexShader;
 	OpenGLFragmentShaderResourcePtr mFragmentShader;

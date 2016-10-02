@@ -86,69 +86,6 @@ static bool CheckProgramLinkStatus(uint32_t pShader)
 }
 
 
-/** Representation in memory of attribute data */
-enum class EVertexAttributeFormat : uint8_t
-{
-	Float1,
-	Float2,
-	Float3,
-	Float4,
-	UByte4,
-	UByte4N,	// Generally used for color
-
-	Count
-};
-
-// https://www.opengl.org/sdk/docs/man4/html/glVertexAttribPointer.xhtml
-static void TranslateVertexAttributeFormat(EVertexAttributeFormat pFormat, GLenum& pType, GLint& pSize, GLboolean& pIsNormalized)
-{
-	// EVertexAttributeFormat				= {   Float1,   Float2,   Float3,   Float4,           UByte4,          UByte4N
-	static const GLenum lsToGLType[]		= { GL_FLOAT, GL_FLOAT, GL_FLOAT, GL_FLOAT, GL_UNSIGNED_BYTE, GL_UNSIGNED_BYTE };
-	static const uint8_t lsToGLSize[]		= {        1,        2,        3,        4,                4,                4 };
-	static const bool lsToGLNormalized[]	= {    false,    false,    false,     false,           false,            false };	
-	//static_assert(ARRAY_COUNT(lsToGLSize) EQ ARRAY_COUNT(lsToGLNormalized) EQ ARRAY_COUNT(lsToGLType) EQ (uint8_t)EVertexAttributeFormat::Count, "Number of enum changed, update this table");
-
-	pType = lsToGLType[(uint8_t)pFormat];
-	pSize = lsToGLSize[(uint8_t)pFormat];
-	pIsNormalized = lsToGLNormalized[(uint8_t)pIsNormalized];
-}
-
-struct VertexAttribute
-{
-	VertexAttribute(uint8_t pStreamIndex, EVertexAttributeFormat pFormat, uint32_t pOffset, uint32_t pStride, uint8_t pDivisor) : mStride(pStride), mOffset(pOffset), mStreamIndex(pStreamIndex), mFormat(pFormat), mDivisor(pDivisor) {}
-
-	uint32_t mStride;	// Specifies the byte offset between consecutive generic vertex attributes. If stride is 0, the generic vertex attributes are understood to be tightly packed in the array. The initial value is 0.
-	uint32_t mOffset;	// Offset in bytes in the vertex buffer where start the first vertex
-	uint8_t mStreamIndex;
-	EVertexAttributeFormat mFormat;
-	uint8_t mDivisor;	// Modifies the rate at which generic vertex attributes advance when rendering multiple instances of primitives in a single draw call.If divisor is zero, the attribute at slot index advances once per vertex. If divisor is non-zero, the attribute advances once per divisor instances of the set(s) of vertices being rendered.
-};
-
-// https://www.khronos.org/opengles/sdk/docs/man/xhtml/glVertexAttribPointer.xml
-struct OpenGLVertexAttribute : public VertexAttribute
-{
-	OpenGLVertexAttribute(uint8_t pStreamIndex, EVertexAttributeFormat pFormat, uint32_t pOffset, uint32_t pStride, uint8_t pDivisor) 
-	: VertexAttribute(pStreamIndex, pFormat, pOffset, pStride, pDivisor)
-	{
-		TranslateVertexAttributeFormat(mFormat, mType, mTypeSize, mIsNormalized);
-	}
-
-	GLint mTypeSize;			// The number of components per generic vertex attribute. Must be 1, 2, 3, or 4
-	GLenum mType;				// GL_BYTE, GL_UNSIGNED_BYTE, GL_SHORT, GL_UNSIGNED_SHORT, GL_FIXED, or GL_FLOAT ...
-	GLboolean mIsNormalized;	// Specifies whether fixed-point data values should be normalized or converted directly as fixed-point values when they are accessed.
-};
-
-typedef  Array<VertexAttribute> VertexAttributeDeclaration;
-
-/*
-class VertexFormatResource : public RenderResource
-{
-	//VertexAttributeDeclarationResource
-};
-typedef RefPointer<VertexFormatResource> VertexFormatResourcePtr;
-*/
-
-
 /*****************************************************************************/
 std::string loadShaderFile(const std::string& pFilename)
 {
@@ -195,6 +132,8 @@ ProgramResourcePtr rhi_prog;
 VertexBufferResourcePtr rhi_vbo;
 IndexBufferResourcePtr rhi_ibo;
 
+VertexInputLayoutResourcePtr rhi_layout;
+VertexAttributeDesc rhi_vbo_desc = VertexAttributeDesc(EVertexAttributeFormat::Float3, 0, 12, 0);
 
 /*****************************************************************************/
 bool initScene()
@@ -253,8 +192,22 @@ bool initScene()
 
 
 	// RHI sample
-	rhi_vbo = RHICreateVertexBuffer(vertices.dataSize(), EBufferUsage::Static, vertices.data());
-	rhi_ibo = RHICreateIndexBuffer(sizeof(uint16_t), indexes.dataSize(), EBufferUsage::Static, indexes.data());
+	rhi_vbo = RHICreateVertexBuffer((uint32_t)vertices.dataSize(), EBufferUsage::Static, vertices.data());
+
+	{
+		Array<VertexBufferResourcePtr> testArray;
+		VertexBufferResourcePtr test;
+		test = rhi_vbo;
+		testArray.add(test);
+		testArray.add(test);
+
+		Array<VertexBufferResourcePtr> testArray2;
+		testArray2 = testArray;
+		testArray2.add(test);
+
+	}
+
+	rhi_ibo = RHICreateIndexBuffer(sizeof(uint16_t), (uint32_t)indexes.dataSize(), EBufferUsage::Static, indexes.data());
 
 	{
 		std::string lCode = loadShaderFile(SHADER_DIR "simple.vert");
@@ -267,6 +220,13 @@ bool initScene()
 	}
 
 	rhi_prog = RHICreateProgram(rhi_vert, rhi_frag);
+
+
+	VertexInputLayout lLayout;
+	lLayout.setIndexBuffer(rhi_ibo);
+	lLayout.addVertexBuffer(rhi_vbo);
+	lLayout.addAttribute(rhi_vbo_desc);
+	rhi_layout = RHICreateVertexInputLayout(lLayout);
 
 
 	// Load sponza
@@ -295,17 +255,19 @@ void resize(int pWidth, int pHeight)
 void render()
 {
 	RHIClear(true, glm::vec4(0, 0, 0, 0), true, 0.0f, false, 0);
-
+	
+	/*
 	glBindVertexArray(vao);
 	glUseProgram(programID);
 	//glDrawArrays(GL_TRIANGLES, 0, 3);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, NULL);
 	glBindVertexArray(0);
+	*/
 
 
-	//RHISetStream
-	//RHISetProgram(rhi_prog);
-	//RHIDrawPrimitive(EPrimitiveType::Triangles, 0, 2);
+	RHISetProgram(rhi_prog);
+	RHISetVertexInputLayout(rhi_layout);
+	RHIDrawIndexedPrimitive(EPrimitiveType::Triangles, 3, 1);
 
 	glutSwapBuffers();
 }

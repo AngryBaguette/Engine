@@ -1,7 +1,7 @@
 #pragma once
 #include <Common.hpp>
-
-#include <glm/glm.h>
+#include <OpenGLRHIResource.hpp>
+#include <glm/glm.hpp>
 
 struct ViewportState
 {
@@ -35,3 +35,16 @@ struct OpenGLState
 	ScissorState	mScissorState;
 };
 
+
+struct Stream
+{
+	OpenGLVertexBufferResource* mVertexBuffer;
+	uint32_t mOffset;
+	uint8_t mStride;
+};
+
+struct OpenGLState
+{
+	Stream mStream[16];
+
+};
