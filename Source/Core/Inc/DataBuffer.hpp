@@ -8,7 +8,7 @@
 /*****************************************************************************/
 /*****************************************************************************/
 /*****************************************************************************/
-class DataBuffer : public RefCounted
+class Core_EXPORT DataBuffer : public RefCounted
 {
 public:
 	/** Create and allocate **/
@@ -17,7 +17,10 @@ public:
 	FORCEINLINE uint8_t* data() { return &mData[0]; }
 
 	/** The size in bytes of the buffer **/
-	FORCEINLINE size_t size() const;
+	FORCEINLINE void resize(size_t pSize) { mData.resize(pSize); }
+
+	/** The size in bytes of the buffer **/
+	FORCEINLINE size_t size() const { return mData.dataSize(); }
 
 protected:
 	/** Destructor **/
@@ -30,12 +33,10 @@ protected:
 	DataBuffer(size_t pSize);
 
 	/** The data **/
+#pragma warning( push )
+#pragma warning( disable : 4251 )
 	Array<uint8_t> mData;
+#pragma warning(pop)
 };
 
-/*****************************************************************************/
-FORCEINLINE size_t DataBuffer::size() const
-{
-	TODO;
-	return 0;
-}
+Core_EXPORT typedef RefPointer<DataBuffer> DataBufferPtr;

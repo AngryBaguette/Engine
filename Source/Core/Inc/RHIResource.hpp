@@ -45,6 +45,14 @@ enum class EIndexFormat : uint8_t
 	Count
 };
 
+/** Total size in byte **/
+static FORCEINLINE uint8_t TranslateIndexFormatToByte(EIndexFormat pFormat)
+{
+	static uint8_t lsToByte[] = { 1, 2, 4 };
+	static_assert(ARRAY_COUNT(lsToByte) EQ (uint8_t)EIndexFormat::Count, "Enum count changed, reflect modification here");
+	return lsToByte[(uint8_t)pFormat];
+}
+
 /** Representation in memory of attribute data */
 enum class EVertexAttributeFormat : uint8_t
 {
@@ -58,14 +66,38 @@ enum class EVertexAttributeFormat : uint8_t
 	Count
 };
 
+/** Total size in byte of the attribute **/
+static FORCEINLINE uint8_t TranslateVertexAttributeFormatToByte(EVertexAttributeFormat pFormat)
+{
+	static uint8_t lsToByte[] = { 4, 8, 12, 16, 4, 4 };
+	static_assert(ARRAY_COUNT(lsToByte) EQ (uint8_t)EVertexAttributeFormat::Count, "Enum count changed, reflect modification here");
+	return lsToByte[(uint8_t)pFormat];
+}
+
+
+
 /** Device resource object */
-class Core_EXPORT RenderResource : public RefCounted
+class Core_EXPORT RHIResource : public RefCounted
 {
 };
 
-/**
-*/
-class Core_EXPORT VertexBufferResource : public RenderResource
+
+
+/** **/
+class SamplerStateResource : public RHIResource {};
+
+/** **/
+class RasterizerStateResource : public RHIResource {};
+
+/**  **/
+class DepthStencilStateResource : public RHIResource {};
+
+/** **/
+class BlendStateResource : public RHIResource {};
+
+
+/** **/
+class Core_EXPORT VertexBufferResource : public RHIResource
 {
 public:
 	/* Constructor */
@@ -83,8 +115,8 @@ protected:
 };
 typedef RefPointer<VertexBufferResource> VertexBufferResourcePtr;
 
-
-class Core_EXPORT IndexBufferResource : public RenderResource
+/** **/
+class Core_EXPORT IndexBufferResource : public RHIResource
 {
 public:
 	IndexBufferResource(uint8_t pStride, uint32_t pSize, EBufferUsage pUsage) : mSize(pSize), mUsage(pUsage) {}
@@ -106,19 +138,19 @@ protected:
 typedef RefPointer<IndexBufferResource> IndexBufferResourcePtr;
 
 
-class Core_EXPORT VertexShaderResource : public RenderResource
+class Core_EXPORT VertexShaderResource : public RHIResource
 {
 
 };
 typedef RefPointer<VertexShaderResource> VertexShaderResourcePtr;
 
-class Core_EXPORT FragmentShaderResource : public RenderResource
+class Core_EXPORT FragmentShaderResource : public RHIResource
 {
 
 };
 typedef RefPointer<FragmentShaderResource> FragmentShaderResourcePtr;
 
-class Core_EXPORT ProgramResource : public RenderResource
+class Core_EXPORT ProgramResource : public RHIResource
 {
 
 };
@@ -188,7 +220,7 @@ struct Core_EXPORT VertexInputLayout
 };
 
 
-class VertexInputLayoutResource : public RenderResource
+class VertexInputLayoutResource : public RHIResource
 {
 public:
 	VertexInputLayoutResource(const VertexInputLayout& pLayout) : mLayout(pLayout) {}

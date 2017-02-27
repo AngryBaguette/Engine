@@ -1,7 +1,9 @@
 #pragma once
 
+#include <CoreConfig.hpp>
 #include <RefCounted.hpp>
 #include <DataBuffer.hpp>
+#include "RHIResource.hpp"
 
 /*****************************************************************************/
 /*****************************************************************************/
@@ -9,20 +11,16 @@
 /**
  * Contain indexes
  */
-class IndexBuffer : public RefCounted
+class Core_EXPORT IndexBuffer : public RefCounted
 {
 public:
-	/** The format of index **/
-	enum EFormat
-	{
-		eUInt16,
-		eUInt32,
-		eCountFormat
-	};
 
 public:
 	/** Create and allocate an index buffer **/
-	static IndexBuffer* create(uint32_t pCount, EFormat pFormat = eUInt16);
+	static IndexBuffer* create(uint32_t pCount, EIndexFormat pFormat = EIndexFormat::Int32);
+
+	/**  **/
+	FORCEINLINE void setNumOfIndices(uint32_t pCount) { mCount = pCount;  mData->resize(mCount); }
 
 	/** Number of indexes **/
 	FORCEINLINE uint32_t count() const { return mCount; }
@@ -38,29 +36,21 @@ protected:
 	IndexBuffer() = delete;
 
 	/** Constructor **/
-	IndexBuffer(uint32_t pCount, EFormat pFormat = eUInt16);
+	IndexBuffer(uint32_t pCount, EIndexFormat pFormat);
 
 	/** The format of index buffer **/
-	EFormat mFormat;
+	EIndexFormat mFormat;
 
 	/** Count indices **/
 	uint32_t mCount;
 
 	/** The index array **/
-	RefPointer<DataBuffer> mData;
+#pragma warning( push )
+#pragma warning( disable : 4251 )
+	DataBufferPtr mData;
+#pragma warning(pop)
+	
 };
 
 /*****************************************************************************/
-FORCEINLINE uint32_t IndexBuffer::stride() const
-{
-	switch
-		(mFormat)
-	{
-	case eUInt16: return 2;
-	case eUInt32: return 4;
-	default: break;
-	}
-
-	assert(false);
-	return 0;
-}
+Core_EXPORT typedef RefPointer<IndexBuffer> IndexBufferPtr;

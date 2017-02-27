@@ -114,6 +114,32 @@ public:
 		return ((T*)mData)[pIndex];
 	}
 
+	/** Resize the array **/
+	FORCEINLINE void resize(size_t pCount)
+	{
+		if
+			(pCount < mCount)
+		{
+			DestructItems(&mData[pCount], mCount - pCount);
+			mCount = pCount;
+		}
+		else if
+			(pCount > mCount)
+		{
+			addUninitialized(pCount - mCount);
+		}
+	}
+
+	FORCEINLINE void reserve(size_t pCapacity)
+	{
+		if
+			(pCapacity > mCapacity)
+		{
+			mCapacity = pCapacity;
+			mData = (T*)Memory::Realloc(mData, mCapacity * sizeof(T));
+		}
+	}
+
 	/** Add an element */
 	FORCEINLINE void add(const T& pElement)
 	{
@@ -198,7 +224,7 @@ public:
 	}
 
 	/* Realloc if necessary in order to store 'pCount' new entries */
-	size_t addUninitialized(size_t pCount)
+	FORCEINLINE size_t addUninitialized(size_t pCount)
 	{
 		const size_t lCount = mCount;
 		if (mCount + pCount > mCapacity)

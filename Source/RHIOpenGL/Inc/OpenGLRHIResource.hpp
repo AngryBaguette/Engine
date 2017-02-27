@@ -31,14 +31,14 @@ static void TranslateVertexAttributeFormat(EVertexAttributeFormat pFormat, GLenu
 	// EVertexAttributeFormat				= {	Float1	, Float2	, Float3	, Float4	, UByte4			, UByte4N			}
 	static const GLenum lsToGLType[]		= {	GL_FLOAT, GL_FLOAT	, GL_FLOAT	, GL_FLOAT	, GL_UNSIGNED_BYTE	, GL_UNSIGNED_BYTE	};
 	static const uint8_t lsToGLSize[]		= {	1		, 2			, 3			, 4			, 4					, 4					};
-	static const bool lsToGLNormalized[]	= {	false	, false		, false		, false		, false				, false				};
+	static const bool lsToGLNormalized[]	= {	false	, false		, false		, false		, false				, true				};
 	static_assert(sizeof(lsToGLType) / sizeof(GLenum) EQ (uint8_t)EVertexAttributeFormat::Count, "Enum count changed, reflect modification here");
 	static_assert(sizeof(lsToGLSize) / sizeof(uint8_t) EQ (uint8_t)EVertexAttributeFormat::Count, "Enum count changed, reflect modification here");
 	static_assert(sizeof(lsToGLNormalized) / sizeof(bool) EQ (uint8_t)EVertexAttributeFormat::Count, "Enum count changed, reflect modification here");
 
 	pType = lsToGLType[(uint8_t)pFormat];
 	pSize = lsToGLSize[(uint8_t)pFormat];
-	pIsNormalized = lsToGLNormalized[(uint8_t)pIsNormalized];
+	pIsNormalized = lsToGLNormalized[(uint8_t)pFormat];
 }
 
 // Abstraction for all OpenGL Buffer

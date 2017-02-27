@@ -22,7 +22,7 @@ struct ScissorState
 
 struct DepthStencilState
 {
-
+	glm::vec2 mDepthRange;
 };
 
 

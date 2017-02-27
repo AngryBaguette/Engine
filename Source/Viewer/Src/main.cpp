@@ -7,6 +7,8 @@
 #include "Array.hpp"
 #include "RHI.hpp"
 
+#include "VertexBuffer.hpp"
+
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 #include <glm/glm.hpp>
@@ -135,6 +137,8 @@ IndexBufferResourcePtr rhi_ibo;
 VertexInputLayoutResourcePtr rhi_layout;
 VertexAttributeDesc rhi_vbo_desc = VertexAttributeDesc(EVertexAttributeFormat::Float3, 0, 12, 0);
 
+
+
 /*****************************************************************************/
 bool initScene()
 {
@@ -154,6 +158,7 @@ bool initScene()
 		2, 3, 0
 	};
 
+	/*
 	// Shader compilation
 	{
 		vertShaderID = compileShader(SHADER_DIR "simple.vert", GL_VERTEX_SHADER);
@@ -188,25 +193,16 @@ bool initScene()
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 	}
 	glBindVertexArray(0);
+	*/
 
-
+	VertexBufferPtr lVB = VertexBuffer::create();
+	lVB->addAttribute(VertexBuffer::ESemantic::Position, EVertexAttributeFormat::Float3);
+	lVB->setNumOfVertices(vertices.count());
+	lVB->setAttributeValue(VertexBuffer::ESemantic::Position, 0, (uint8_t*)vertices.data(), vertices.count());
+	
 
 	// RHI sample
 	rhi_vbo = RHICreateVertexBuffer((uint32_t)vertices.dataSize(), EBufferUsage::Static, vertices.data());
-
-	{
-		Array<VertexBufferResourcePtr> testArray;
-		VertexBufferResourcePtr test;
-		test = rhi_vbo;
-		testArray.add(test);
-		testArray.add(test);
-
-		Array<VertexBufferResourcePtr> testArray2;
-		testArray2 = testArray;
-		testArray2.add(test);
-
-	}
-
 	rhi_ibo = RHICreateIndexBuffer(sizeof(uint16_t), (uint32_t)indexes.dataSize(), EBufferUsage::Static, indexes.data());
 
 	{
@@ -248,7 +244,7 @@ bool initScene()
 /*****************************************************************************/
 void resize(int pWidth, int pHeight)
 {
-	RHISetViewport(glm::i32vec4(0, 0, pWidth, pHeight), glm::vec2(0, 0));
+	RHISetViewport(glm::i32vec4(0, 0, pWidth, pHeight), glm::vec2(0, 1));
 }
 
 /*****************************************************************************/
@@ -267,7 +263,7 @@ void render()
 
 	RHISetProgram(rhi_prog);
 	RHISetVertexInputLayout(rhi_layout);
-	RHIDrawIndexedPrimitive(EPrimitiveType::Triangles, 3, 1);
+	RHIDrawIndexedPrimitive(EPrimitiveType::Triangles, 0, 2);
 
 	glutSwapBuffers();
 }
@@ -277,7 +273,6 @@ void idle()
 {
 	render();
 }
-
 
 /*****************************************************************************/
 int main(int argc, char** argv)

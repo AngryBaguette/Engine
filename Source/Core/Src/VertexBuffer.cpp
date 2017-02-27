@@ -2,45 +2,46 @@
 #include <algorithm>
 
 /*****************************************************************************/
-VertexBuffer* VertexBuffer::create(size_t pNumOfVertices)
+VertexBuffer* VertexBuffer::create()
 {
-	return new VertexBuffer(pNumOfVertices);
+	return new VertexBuffer();
 }
 
 /*****************************************************************************/
-VertexBuffer::VertexBuffer(size_t pNumOfVertices)
-: mCount((uint32_t)pNumOfVertices)
-, mIsAllocated(false)
+void VertexBuffer::destroy()
+{
+	delete this;
+}
+
+/*****************************************************************************/
+VertexBuffer::VertexBuffer()
+: mCount(0)
 , mVertexSize(0)
+, mData(DataBuffer::create())
 {
 }
 
 /*****************************************************************************/
-void VertexBuffer::allocate()
+void VertexBuffer::setNumOfVertices(uint32_t pCount)
 {
-	assert(!mIsAllocated && ">> Already allocated <<");
-	size_t lSize = 0;
-	for (int i = 0; i < mAttributes.size(); ++i)
+	if
+		(pCount NEQ mCount)
 	{
-		lSize += getTypeSize(mAttributes[i].mType) * mAttributes[i].mSize;
+		mData->resize(pCount * mVertexSize);
+		mCount = pCount;
 	}
-
-	mData = DataBuffer::create(lSize);
-	mIsAllocated = true;
 }
 
 /*****************************************************************************/
-void VertexBuffer::setAttributeValue(ESemantic pSemantic, uint32_t pIndex, uint8_t* pDataValue, uint32_t pCount)
+void VertexBuffer::setAttributeValue(ESemantic pSemantic, uint32_t pIndex, const uint8_t* pDataValue, uint32_t pCount)
 {
-	assert(mIsAllocated && ">> Try to set value on non allocated vertex buffer <<");
-
 	// Find the semantic
-	auto lItr = std::find_if(mAttributes.begin(), mAttributes.end(), [pSemantic](const VertexBuffer::SAttributeDesc& pDesc) { return pDesc.mSemantic == pSemantic; });
+	auto lItr = std::find_if(mAttributes.begin(), mAttributes.end(), [pSemantic](const VertexBuffer::SAttributeDesc& pDesc) { return pDesc.mSemantic EQ pSemantic; });
 
 	if
-		(lItr != mAttributes.end())
+		(lItr NEQ mAttributes.end())
 	{
-		uint32_t lAttributeSize = getTypeSize(lItr->mType) * lItr->mSize;
+		uint32_t lAttributeSize = TranslateVertexAttributeFormatToByte(lItr->mFormat);
 		for (uint32_t i = 0; i < pCount; ++i)
 		{
 			Memory::Memcpy(mData->data() + lItr->mOffset + (pIndex + i)*mVertexSize, pDataValue + (i*mVertexSize), lAttributeSize);
@@ -49,16 +50,14 @@ void VertexBuffer::setAttributeValue(ESemantic pSemantic, uint32_t pIndex, uint8
 }
 
 /*****************************************************************************/
-void VertexBuffer::addAttribute(ESemantic pSemantic, uint32_t pSize, Type pType, bool pNormalized)
+void VertexBuffer::addAttribute(ESemantic pSemantic, EVertexAttributeFormat pFormat)
 {
 	SAttributeDesc lDesc;
 	lDesc.mSemantic = pSemantic;
-	lDesc.mSize = pSize;
-	lDesc.mType = pType;
-	lDesc.mNormalized = pNormalized;
-	lDesc.mOffset = mAttributes.empty() ? 0 : mAttributes.back().mOffset + mAttributes.back().mSize * getTypeSize(pType);
+	lDesc.mFormat = pFormat;
+	lDesc.mOffset = mVertexSize;
 	mAttributes.push_back(lDesc);
 
 	// Size of one vertex
-	mVertexSize += pSize * getTypeSize(pType);
+	mVertexSize += TranslateVertexAttributeFormatToByte(pFormat);
 }

@@ -9,6 +9,5 @@ DataBuffer* DataBuffer::create(size_t pSize)
 /*****************************************************************************/
 DataBuffer::DataBuffer(size_t pSize)
 {
-	TODO;
-	//mData.resize(pSize);
+	mData.resize(pSize);
 }

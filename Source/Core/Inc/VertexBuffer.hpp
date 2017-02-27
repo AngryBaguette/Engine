@@ -1,8 +1,9 @@
 #pragma once
 
-#include "CoreConfig.hpp"
-#include "RefCounted.hpp"
-#include "DataBuffer.hpp"
+#include <CoreConfig.hpp>
+#include <RefCounted.hpp>
+#include <DataBuffer.hpp>
+#include <RHIResource.hpp>
 
 // STL
 #include <vector>
@@ -14,76 +15,64 @@
  * Contain vertices
  *
  * Example of creation of a vertex buffer with a position, normal and texture coordinate (v3fv3fv2f)
- * vb = VertexBuffer::create(NumOfVertices)
- * vb->addAttribute( VertexBuffer::ePosition, 3, VertexBuffer::eFloat );
- * vb->addAttribute( VertexBuffer::eNormal, 3, VertexBuffer::eFloat );
- * vb->addAttribute( VertexBuffer::eTexCoord0, 2, VertexBuffer::eFloat );
- * vb->allocate();
+ * vb = VertexBuffer::create()
+ * vb->addAttribute( VertexBuffer::Position, EVertexAttributeFormat::Float3);
+ * vb->addAttribute( VertexBuffer::Normal, EVertexAttributeFormat::Float3 );
+ * vb->addAttribute( VertexBuffer::TexCoord0, EVertexAttributeFormat::Float2 );
+ * vb->setNumOfVertices();
  */
-class Core_EXPORT VertexBuffer
+class Core_EXPORT VertexBuffer : public RefCounted
 {
 public:
 	/** The attribute semantic **/
-	enum ESemantic
+	enum class ESemantic
 	{
-		ePosition,
-		eColor,
-		eNormal,
-		eBinormal,
-		eTangent,
-		eTexCoord0,
-		eTexCoord1,
-		eTexCoord2,
-		eTexCoord3, 
-		eTexCoord4,
-		eTexCoord5,
-		eTexCoord6,
-		eTexCoord7,
+		Position,
+		Color,
+		Normal,
+		Binormal,
+		Tangent,
+		TexCoord0,
+		TexCoord1,
+		TexCoord2,
+		TexCoord3, 
+		TexCoord4,
+		TexCoord5,
+		TexCoord6,
+		TexCoord7,
 
-		eCountSemantic
-	};
-
-	/** The type of data store in the array **/
-	enum Type
-	{
-		// glVertexArrayAttribFormat
-		// GL_BYTE, GL_SHORT, GL_INT, GL_FIXED, GL_FLOAT, GL_HALF_FLOAT, GL_DOUBLE, GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, GL_UNSIGNED_INT, GL_INT_2_10_10_10_REV, GL_UNSIGNED_INT_2_10_10_10_REV, GL_UNSIGNED_INT_10F_11F_11F_REV
-		eFloat,
-		eInt,
-		eUInt,
-		eByte,
-		eUByte,
-
-		eCountType
+		Count
 	};
 
 	/** Attribute ddescription of each attribute array **/
 	struct SAttributeDesc
 	{
-		ESemantic	mSemantic;		// The semantic
-		uint32_t	mSize;			// 1 2 3 4
-		Type		mType;			// float byte etc...
-		bool		mNormalized;	// 
-		uint32_t	mOffset;		// offset in bytes
+		ESemantic				mSemantic;		// The semantic
+		EVertexAttributeFormat	mFormat;		// Float1/Float2...
+		uint32_t				mOffset;		// offset in bytes
 	};
 
 public:
 	/** Create the vertex buffer **/
-	static VertexBuffer* create(size_t pNumOfVertices = 0);
+	static VertexBuffer* create();
+
+	/** Delete the vertex buffer **/
+	void destroy();
 
 	/** Add an attribute **/
-	void addAttribute(ESemantic pSemantic, uint32_t pSize, Type pType, bool pNormalized = false);
+	void addAttribute(ESemantic pSemantic, EVertexAttributeFormat pFormat);
 
 	/** Allocate the vertex buffer data **/
-	void allocate();
+	void setNumOfVertices(uint32_t pCount);
 
 	/** Copy 
+	 * This method is for convenience. NOT OPTIMAL AT ALL
 	 * @param pSemantic The semantic to write.
 	 * @param pIndex The index of the vertex to set
-	 * @param pDataValue Where to read the value
-	 * @param pCount Number of of value to read
+	 * @param pSrc Where to read the value
+	 * @param pCount Number of value to read
 	 **/
-	void setAttributeValue(ESemantic pSemantic, uint32_t pIndex, uint8_t* pDataValue, uint32_t pCount = 0);
+	void setAttributeValue(ESemantic pSemantic, uint32_t pIndex, const uint8_t* pSrc, uint32_t pCount = 1);
 
 	/** Number of attributes **/
 	FORCEINLINE uint32_t countAttributes() const { return static_cast<uint32_t>(mAttributes.size()); }
@@ -99,56 +88,28 @@ public:
 
 protected:
 	/** Forbid **/
-	VertexBuffer() = delete;
-
-	/** The constructor **/
-	VertexBuffer(size_t NumOfVertices);
+	VertexBuffer();
+	~VertexBuffer() = default;
 
 	/** The size in bytes of one vertex **/
 	uint32_t mVertexSize;
 
-	/** To know if the buffer has been allocated **/
-	bool mIsAllocated;
-
 	/** The attributes description of the vertex buffer **/
+#pragma warning( push )
+#pragma warning( disable : 4251 )
 	std::vector<SAttributeDesc>	mAttributes;
+#pragma warning(pop)
 
 	/** Count vertices **/
 	uint32_t mCount;
 
 	/** The data **/
-	RefPointer<DataBuffer> mData;
-
-	/** pType refer to the GLenum pass to the glVertexArray **/
-	FORCEINLINE uint32_t getTypeSize(Type pType) const;
+#pragma warning( push )
+#pragma warning( disable : 4251 )
+	DataBufferPtr mData;
+#pragma warning(pop)
 };
 
-// Instantiate classes vector<int> and vector<char>
-// This does not create an object. It only forces the generation of all
-// of the members of classes vector<int> and vector<char>. It exports
-// them from the DLL and imports them into the .exe file.
-Core_TEMPLATE_EXPORT template class Core_EXPORT std::vector<VertexBuffer::SAttributeDesc>;
 
-
-/*****************************************************************************/
-FORCEINLINE uint32_t VertexBuffer::getTypeSize(Type pType) const
-{
-	assert(pType < eCountType);
-	switch
-		(pType)
-	{
-	case eFloat:
-	case eInt:
-	case eUInt:
-		return 4;
-	case eByte:
-	case eUByte:
-		return 1;
-	default: 
-		assert(false && "not managed yet");
-		break;
-	}
-
-	assert(false);
-	return 0;
-}
+//Core_TEMPLATE_EXPORT template class Core_EXPORT RefPointer<VertexBuffer>;
+Core_EXPORT typedef RefPointer<VertexBuffer> VertexBufferPtr;

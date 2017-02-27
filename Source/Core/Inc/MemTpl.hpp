@@ -60,4 +60,6 @@ template <typename T>
 FORCEINLINE typename std::enable_if<std::is_trivially_destructible<T>::value>::type DestructItems(T* pData, size_t pCount)
 {
 	// Nothing to do
+	// Storage occupied by trivially destructible objects may be reused without calling the destructor.
+	// http://en.cppreference.com/w/cpp/types/is_destructible
 }
