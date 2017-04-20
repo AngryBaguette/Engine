@@ -48,13 +48,13 @@ protected:
 	GLuint mHandle;
 };
 
-typedef OpenGLShaderResource<VertexShaderResource, GL_VERTEX_SHADER> OpenGLVertexShaderResource;
+typedef OpenGLShaderResource<VertexShaderRHI, GL_VERTEX_SHADER> OpenGLVertexShaderResource;
 typedef RefPointer<OpenGLVertexShaderResource> OpenGLVertexShaderResourcePtr;
-typedef OpenGLShaderResource<FragmentShaderResource, GL_FRAGMENT_SHADER> OpenGLFragmentShaderResource;
+typedef OpenGLShaderResource<FragmentShaderRHI, GL_FRAGMENT_SHADER> OpenGLFragmentShaderResource;
 typedef RefPointer<OpenGLFragmentShaderResource> OpenGLFragmentShaderResourcePtr;
 
 
-class OpenGLProgramResource : public ProgramResource
+class OpenGLProgramResource : public ProgramRHI
 {
 public:
 	OpenGLProgramResource(OpenGLVertexShaderResource* pVertexShader, OpenGLFragmentShaderResource* pFragmentShader);

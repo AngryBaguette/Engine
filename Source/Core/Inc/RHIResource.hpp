@@ -79,29 +79,31 @@ static FORCEINLINE uint8_t TranslateVertexAttributeFormatToByte(EVertexAttribute
 /** Device resource object */
 class Core_EXPORT RHIResource : public RefCounted
 {
+protected:
+
 };
 
 
 
 /** **/
-class SamplerStateResource : public RHIResource {};
+class SamplerStateRHI : public RHIResource {};
 
 /** **/
-class RasterizerStateResource : public RHIResource {};
+class RasterizerStateRHI : public RHIResource {};
 
 /**  **/
-class DepthStencilStateResource : public RHIResource {};
+class DepthStencilStateRHI : public RHIResource {};
 
 /** **/
-class BlendStateResource : public RHIResource {};
+class BlendStateRHI : public RHIResource {};
 
 
 /** **/
-class Core_EXPORT VertexBufferResource : public RHIResource
+class Core_EXPORT VertexBufferRHI : public RHIResource
 {
 public:
 	/* Constructor */
-	VertexBufferResource(uint32_t pSize, EBufferUsage pUsage) : mSize(pSize), mUsage(pUsage) {}
+	VertexBufferRHI(uint32_t pSize, EBufferUsage pUsage) : mSize(pSize), mUsage(pUsage) {}
 
 	/* Get the buffer usage */
 	EBufferUsage getUsage() const { return mUsage; }
@@ -113,13 +115,13 @@ protected:
 	EBufferUsage mUsage;
 	uint32_t    mSize;
 };
-typedef RefPointer<VertexBufferResource> VertexBufferResourcePtr;
+typedef RefPointer<VertexBufferRHI> VertexBufferRHIPtr;
 
 /** **/
-class Core_EXPORT IndexBufferResource : public RHIResource
+class Core_EXPORT IndexBufferRHI : public RHIResource
 {
 public:
-	IndexBufferResource(uint8_t pStride, uint32_t pSize, EBufferUsage pUsage) : mSize(pSize), mUsage(pUsage) {}
+	IndexBufferRHI(uint8_t pStride, uint32_t pSize, EBufferUsage pUsage) : mSize(pSize), mUsage(pUsage) {}
 
 	/* Get the buffer usage */
 	EBufferUsage getUsage() const { return mUsage; }
@@ -135,26 +137,26 @@ protected:
 	uint32_t    mSize;
 	uint8_t		mStride;
 };
-typedef RefPointer<IndexBufferResource> IndexBufferResourcePtr;
+typedef RefPointer<IndexBufferRHI> IndexBufferRHIPtr;
 
 
-class Core_EXPORT VertexShaderResource : public RHIResource
+class Core_EXPORT VertexShaderRHI : public RHIResource
 {
 
 };
-typedef RefPointer<VertexShaderResource> VertexShaderResourcePtr;
+typedef RefPointer<VertexShaderRHI> VertexShaderRHIPtr;
 
-class Core_EXPORT FragmentShaderResource : public RHIResource
+class Core_EXPORT FragmentShaderRHI : public RHIResource
 {
 
 };
-typedef RefPointer<FragmentShaderResource> FragmentShaderResourcePtr;
+typedef RefPointer<FragmentShaderRHI> FragmentShaderRHIPtr;
 
-class Core_EXPORT ProgramResource : public RHIResource
+class Core_EXPORT ProgramRHI : public RHIResource
 {
 
 };
-typedef RefPointer<ProgramResource> ProgramResourcePtr;
+typedef RefPointer<ProgramRHI> ProgramRHIPtr;
 
 
 struct Core_EXPORT VertexAttributeDesc
@@ -180,13 +182,13 @@ struct Core_EXPORT VertexInputLayout
 	}
 
 	/** Optional index buffer */
-	void setIndexBuffer(IndexBufferResourcePtr& pIndexBuffer)
+	void setIndexBuffer(IndexBufferRHIPtr& pIndexBuffer)
 	{
 		mIndexBuffer = pIndexBuffer;
 	}
 
 	/** Vertex buffer and its binding point */
-	void addVertexBuffer(VertexBufferResourcePtr& pVertexBuffer, uint8_t pStreamIndex = -1)
+	void addVertexBuffer(VertexBufferRHIPtr& pVertexBuffer, uint8_t pStreamIndex = -1)
 	{
 		uint8_t lStreamIndex = (uint8_t)mVertexBuffers.count();
 		if (pStreamIndex NEQ - 1)
@@ -213,20 +215,20 @@ struct Core_EXPORT VertexInputLayout
 
 #pragma warning( push )
 #pragma warning( disable : 4251 )
-	IndexBufferResourcePtr mIndexBuffer;
-	Array< std::pair<VertexBufferResourcePtr, uint8_t> > mVertexBuffers;	// VertexBuffer and its stream index
+	IndexBufferRHIPtr mIndexBuffer;
+	Array< std::pair<VertexBufferRHIPtr, uint8_t> > mVertexBuffers;	// VertexBuffer and its stream index
 	Array< std::pair< VertexAttributeDesc, uint8_t > > mAttributes;			// Attribute and its vertex buffer
 #pragma warning( pop )
 };
 
 
-class VertexInputLayoutResource : public RHIResource
+class VertexInputLayoutRHI : public RHIResource
 {
 public:
-	VertexInputLayoutResource(const VertexInputLayout& pLayout) : mLayout(pLayout) {}
+	VertexInputLayoutRHI(const VertexInputLayout& pLayout) : mLayout(pLayout) {}
 
 protected:
 	VertexInputLayout mLayout;
 };
 
-typedef RefPointer<VertexInputLayoutResource> VertexInputLayoutResourcePtr;
+typedef RefPointer<VertexInputLayoutRHI> VertexInputLayoutRHIPtr;

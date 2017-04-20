@@ -108,13 +108,13 @@ void OpenGLRHI::RHISetViewport(const glm::i32vec4& pViewport, const glm::vec2& p
 }
 
 /************************************************************************/
-VertexBufferResourcePtr OpenGLRHI::RHICreateVertexBuffer(uint32_t pSize, EBufferUsage pUsage, const void* pData)
+VertexBufferRHIPtr OpenGLRHI::RHICreateVertexBuffer(uint32_t pSize, EBufferUsage pUsage, const void* pData)
 {
 	return new OpenGLVertexBufferResource(pSize, pUsage, pData);
 }
 
 /************************************************************************/
-void* OpenGLRHI::RHILockVertexBuffer(VertexBufferResourcePtr& pVB, uint32_t pOffset, uint32_t pSize, EBufferAccess pAccess)
+void* OpenGLRHI::RHILockVertexBuffer(VertexBufferRHIPtr& pVB, uint32_t pOffset, uint32_t pSize, EBufferAccess pAccess)
 {
 	OpenGLVertexBufferResource* lVB = static_cast<OpenGLVertexBufferResource*>(pVB.get());
 	void* lData = lVB->lock(pOffset, pSize, pAccess);
@@ -122,20 +122,20 @@ void* OpenGLRHI::RHILockVertexBuffer(VertexBufferResourcePtr& pVB, uint32_t pOff
 }
 
 /************************************************************************/
-void OpenGLRHI::RHIUnlockVertexBuffer(VertexBufferResourcePtr& pVB)
+void OpenGLRHI::RHIUnlockVertexBuffer(VertexBufferRHIPtr& pVB)
 {
 	OpenGLVertexBufferResource* lVB = static_cast<OpenGLVertexBufferResource*>(pVB.get());
 	lVB->unlock();
 }
 
 /************************************************************************/
-IndexBufferResourcePtr OpenGLRHI::RHICreateIndexBuffer(uint8_t pStride, uint32_t pSize, EBufferUsage pUsage, const void* pData)
+IndexBufferRHIPtr OpenGLRHI::RHICreateIndexBuffer(uint8_t pStride, uint32_t pSize, EBufferUsage pUsage, const void* pData)
 {
 	return new OpenGLIndexBufferResource(pStride, pSize, pUsage, pData);
 }
 
 /************************************************************************/
-void* OpenGLRHI::RHILockIndexBuffer(IndexBufferResourcePtr& pVB, uint32_t pOffset, uint32_t pSize, EBufferAccess pAccess)
+void* OpenGLRHI::RHILockIndexBuffer(IndexBufferRHIPtr& pVB, uint32_t pOffset, uint32_t pSize, EBufferAccess pAccess)
 {
 	OpenGLIndexBufferResource* lVB = static_cast<OpenGLIndexBufferResource*>(pVB.get());
 	void* lData = lVB->lock(pOffset, pSize, pAccess);
@@ -143,14 +143,14 @@ void* OpenGLRHI::RHILockIndexBuffer(IndexBufferResourcePtr& pVB, uint32_t pOffse
 }
 
 /************************************************************************/
-void OpenGLRHI::RHIUnlockIndexBuffer(IndexBufferResourcePtr& pVB)
+void OpenGLRHI::RHIUnlockIndexBuffer(IndexBufferRHIPtr& pVB)
 {
 	OpenGLIndexBufferResource* lVB = static_cast<OpenGLIndexBufferResource*>(pVB.get());
 	lVB->unlock();
 }
 
 /************************************************************************/
-VertexShaderResourcePtr OpenGLRHI::RHICreateVertexShader(const std::string& pSource)
+VertexShaderRHIPtr OpenGLRHI::RHICreateVertexShader(const std::string& pSource)
 {
 	OpenGLVertexShaderResource* resource = new OpenGLVertexShaderResource(pSource);
 	bool lSuccess = resource->compileShader();
@@ -158,7 +158,7 @@ VertexShaderResourcePtr OpenGLRHI::RHICreateVertexShader(const std::string& pSou
 }
 
 /************************************************************************/
-FragmentShaderResourcePtr OpenGLRHI::RHICreateFragmentShader(const std::string& pSource)
+FragmentShaderRHIPtr OpenGLRHI::RHICreateFragmentShader(const std::string& pSource)
 {
 	OpenGLFragmentShaderResource* resource = new OpenGLFragmentShaderResource(pSource);
 	bool lSuccess = resource->compileShader();
@@ -166,7 +166,7 @@ FragmentShaderResourcePtr OpenGLRHI::RHICreateFragmentShader(const std::string& 
 }
 
 /************************************************************************/
-ProgramResourcePtr OpenGLRHI::RHICreateProgram(VertexShaderResourcePtr & pVertex, FragmentShaderResourcePtr & pFragment)
+ProgramRHIPtr OpenGLRHI::RHICreateProgram(VertexShaderRHIPtr & pVertex, FragmentShaderRHIPtr & pFragment)
 {
 	OpenGLProgramResource* resource = new OpenGLProgramResource(static_cast<OpenGLVertexShaderResource*>(pVertex.get()), static_cast<OpenGLFragmentShaderResource*>(pFragment.get()));
 	bool lSuccess = resource->linkShader();
@@ -192,20 +192,20 @@ void OpenGLRHI::RHIDrawIndexedPrimitive(EPrimitiveType pType, uint32_t pStartInd
 }
 
 /************************************************************************/
-void OpenGLRHI::RHISetProgram(ProgramResourcePtr& pProgram)
+void OpenGLRHI::RHISetProgram(ProgramRHIPtr& pProgram)
 {
 	OpenGLProgramResource* resource = static_cast<OpenGLProgramResource*>(pProgram.get());
 	glUseProgram(resource->handle());
 }
 
 /************************************************************************/
-VertexInputLayoutResourcePtr OpenGLRHI::RHICreateVertexInputLayout(const VertexInputLayout& pLayout)
+VertexInputLayoutRHIPtr OpenGLRHI::RHICreateVertexInputLayout(const VertexInputLayout& pLayout)
 {
 	return new OpenGLVertexInputLayoutResource(pLayout);
 }
 
 /************************************************************************/
-void OpenGLRHI::RHISetVertexInputLayout(VertexInputLayoutResourcePtr& pLayout)
+void OpenGLRHI::RHISetVertexInputLayout(VertexInputLayoutRHIPtr& pLayout)
 {
 	OpenGLVertexInputLayoutResource* resource = static_cast<OpenGLVertexInputLayoutResource*>(pLayout.get());
 	glBindVertexArray(resource->handle());

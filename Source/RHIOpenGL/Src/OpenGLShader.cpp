@@ -57,7 +57,7 @@ bool CheckProgramLinkStatus(uint32_t pShader)
 
 /************************************************************************/
 OpenGLProgramResource::OpenGLProgramResource(OpenGLVertexShaderResource* pVertexShader, OpenGLFragmentShaderResource* pFragmentProgram)
-: ProgramResource()
+: ProgramRHI()
 , mHandle(-1)
 , mVertexShader(pVertexShader)
 , mFragmentShader(pFragmentProgram)

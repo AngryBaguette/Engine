@@ -21,21 +21,21 @@ public:
 	virtual void RHIClear(bool pColor, const glm::vec4& pClearColor, bool pDepth, float pDepthValue, bool pStencil, uint32_t pStencilValue) = 0;
 	virtual void RHISetScissor(bool pEnable, const glm::i32vec4& pRect) = 0;
 	virtual void RHISetViewport(const glm::i32vec4& pViewport, const glm::vec2& pDepthRange) = 0;
-	virtual VertexBufferResourcePtr RHICreateVertexBuffer(uint32_t pSize, EBufferUsage pUsage, const void* pData) = 0;
-	virtual void* RHILockVertexBuffer(VertexBufferResourcePtr& pVB, uint32_t pOffset, uint32_t pSize, EBufferAccess pAccess) = 0;
-	virtual void RHIUnlockVertexBuffer(VertexBufferResourcePtr& pVB) = 0;
-	virtual IndexBufferResourcePtr RHICreateIndexBuffer(uint8_t pStride, uint32_t pSize, EBufferUsage pUsage, const void* pData) = 0;
-	virtual void* RHILockIndexBuffer(IndexBufferResourcePtr& pVB, uint32_t pOffset, uint32_t pSize, EBufferAccess pAccess) = 0;
-	virtual void RHIUnlockIndexBuffer(IndexBufferResourcePtr& pVB) = 0;
+	virtual VertexBufferRHIPtr RHICreateVertexBuffer(uint32_t pSize, EBufferUsage pUsage, const void* pData) = 0;
+	virtual void* RHILockVertexBuffer(VertexBufferRHIPtr& pVB, uint32_t pOffset, uint32_t pSize, EBufferAccess pAccess) = 0;
+	virtual void RHIUnlockVertexBuffer(VertexBufferRHIPtr& pVB) = 0;
+	virtual IndexBufferRHIPtr RHICreateIndexBuffer(uint8_t pStride, uint32_t pSize, EBufferUsage pUsage, const void* pData) = 0;
+	virtual void* RHILockIndexBuffer(IndexBufferRHIPtr& pVB, uint32_t pOffset, uint32_t pSize, EBufferAccess pAccess) = 0;
+	virtual void RHIUnlockIndexBuffer(IndexBufferRHIPtr& pVB) = 0;
 
-	virtual VertexShaderResourcePtr RHICreateVertexShader(const std::string& pSource) = 0;
-	virtual FragmentShaderResourcePtr RHICreateFragmentShader(const std::string& pSource) = 0;
-	virtual ProgramResourcePtr RHICreateProgram(VertexShaderResourcePtr& pVertex, FragmentShaderResourcePtr& pFragment) = 0;
-	virtual void RHISetProgram(ProgramResourcePtr& pProgram) = 0;
+	virtual VertexShaderRHIPtr RHICreateVertexShader(const std::string& pSource) = 0;
+	virtual FragmentShaderRHIPtr RHICreateFragmentShader(const std::string& pSource) = 0;
+	virtual ProgramRHIPtr RHICreateProgram(VertexShaderRHIPtr& pVertex, FragmentShaderRHIPtr& pFragment) = 0;
+	virtual void RHISetProgram(ProgramRHIPtr& pProgram) = 0;
 
 
-	virtual VertexInputLayoutResourcePtr RHICreateVertexInputLayout(const VertexInputLayout& pLayout) = 0;
-	virtual void RHISetVertexInputLayout(VertexInputLayoutResourcePtr& pLayout) = 0;
+	virtual VertexInputLayoutRHIPtr RHICreateVertexInputLayout(const VertexInputLayout& pLayout) = 0;
+	virtual void RHISetVertexInputLayout(VertexInputLayoutRHIPtr& pLayout) = 0;
 
 	/** Use current vertex input layout information */
 	//virtual void RHIDrawPrimitive(EPrimitiveType pType, uint32_t pStartIndex, uint32_t pCount, uint32_t pNumInstances = 0 ) = 0;
@@ -62,41 +62,41 @@ FORCEINLINE static void RHISetViewport(const glm::i32vec4& pViewport, const glm:
 	IDynamicRHI::Get()->RHISetViewport(pViewport, pDepthRange);
 }
 
-FORCEINLINE static VertexBufferResourcePtr RHICreateVertexBuffer(uint32_t pSize, EBufferUsage pUsage, const void* pData)
+FORCEINLINE static VertexBufferRHIPtr RHICreateVertexBuffer(uint32_t pSize, EBufferUsage pUsage, const void* pData)
 {
 	return IDynamicRHI::Get()->RHICreateVertexBuffer(pSize, pUsage, pData);
 }
 
-FORCEINLINE static void* RHILockVertexBuffer(VertexBufferResourcePtr& pVB, uint32_t pOffset, uint32_t pSize, EBufferAccess pAccess)
+FORCEINLINE static void* RHILockVertexBuffer(VertexBufferRHIPtr& pVB, uint32_t pOffset, uint32_t pSize, EBufferAccess pAccess)
 {
 	return IDynamicRHI::Get()->RHILockVertexBuffer(pVB, pOffset, pSize, pAccess);
 }
 
-FORCEINLINE static void RHIUnlockVertexBuffer(VertexBufferResourcePtr& pVB)
+FORCEINLINE static void RHIUnlockVertexBuffer(VertexBufferRHIPtr& pVB)
 {
 	IDynamicRHI::Get()->RHIUnlockVertexBuffer(pVB);
 }
-FORCEINLINE static IndexBufferResourcePtr RHICreateIndexBuffer(uint8_t pStride, uint32_t pSize, EBufferUsage pUsage, const void* pData)
+FORCEINLINE static IndexBufferRHIPtr RHICreateIndexBuffer(uint8_t pStride, uint32_t pSize, EBufferUsage pUsage, const void* pData)
 {
 	return IDynamicRHI::Get()->RHICreateIndexBuffer(pStride, pSize, pUsage, pData);
 }
 
-FORCEINLINE static void* RHILockIndexBuffer(IndexBufferResourcePtr& pVB, uint32_t pOffset, uint32_t pSize, EBufferAccess pAccess)
+FORCEINLINE static void* RHILockIndexBuffer(IndexBufferRHIPtr& pVB, uint32_t pOffset, uint32_t pSize, EBufferAccess pAccess)
 {
 	return IDynamicRHI::Get()->RHILockIndexBuffer(pVB, pOffset, pSize, pAccess);
 }
 
-FORCEINLINE static VertexShaderResourcePtr RHICreateVertexShader(const char* pSource)
+FORCEINLINE static VertexShaderRHIPtr RHICreateVertexShader(const char* pSource)
 {
 	return IDynamicRHI::Get()->RHICreateVertexShader(pSource);
 }
 
-FORCEINLINE static FragmentShaderResourcePtr RHICreateFragmentShader(const char* pSource)
+FORCEINLINE static FragmentShaderRHIPtr RHICreateFragmentShader(const char* pSource)
 {
 	return IDynamicRHI::Get()->RHICreateFragmentShader(pSource);
 }
 
-FORCEINLINE static ProgramResourcePtr RHICreateProgram(VertexShaderResourcePtr& pVertex, FragmentShaderResourcePtr& pFragment)
+FORCEINLINE static ProgramRHIPtr RHICreateProgram(VertexShaderRHIPtr& pVertex, FragmentShaderRHIPtr& pFragment)
 {
 	return IDynamicRHI::Get()->RHICreateProgram(pVertex, pFragment);
 }
@@ -113,17 +113,17 @@ FORCEINLINE static void RHIDrawIndexedPrimitive(EPrimitiveType pType, uint32_t p
 	IDynamicRHI::Get()->RHIDrawIndexedPrimitive(pType, pStartIndex, pCount, pNumInstances);
 }
 
-FORCEINLINE static void RHISetProgram(ProgramResourcePtr& pProgram)
+FORCEINLINE static void RHISetProgram(ProgramRHIPtr& pProgram)
 {
 	IDynamicRHI::Get()->RHISetProgram(pProgram);
 }
 
-FORCEINLINE static VertexInputLayoutResourcePtr RHICreateVertexInputLayout(const VertexInputLayout& pLayout)
+FORCEINLINE static VertexInputLayoutRHIPtr RHICreateVertexInputLayout(const VertexInputLayout& pLayout)
 {
 	return IDynamicRHI::Get()->RHICreateVertexInputLayout(pLayout);
 }
 
-FORCEINLINE static void RHISetVertexInputLayout(VertexInputLayoutResourcePtr& pLayout)
+FORCEINLINE static void RHISetVertexInputLayout(VertexInputLayoutRHIPtr& pLayout)
 {
 	IDynamicRHI::Get()->RHISetVertexInputLayout(pLayout);
 }

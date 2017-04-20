@@ -125,15 +125,15 @@ protected:
 	GLuint mBuffer;
 
 };
-typedef OpenGLBufferResource<VertexBufferResource, GL_ARRAY_BUFFER> OpenGLVertexBufferResource;
-typedef OpenGLBufferResource<IndexBufferResource, GL_ELEMENT_ARRAY_BUFFER> OpenGLIndexBufferResource;
+typedef OpenGLBufferResource<VertexBufferRHI, GL_ARRAY_BUFFER> OpenGLVertexBufferResource;
+typedef OpenGLBufferResource<IndexBufferRHI, GL_ELEMENT_ARRAY_BUFFER> OpenGLIndexBufferResource;
 
 
 
-class OpenGLVertexInputLayoutResource : public VertexInputLayoutResource
+class OpenGLVertexInputLayoutResource : public VertexInputLayoutRHI
 {
 public:
-	OpenGLVertexInputLayoutResource(const VertexInputLayout& pLayout) : VertexInputLayoutResource(pLayout)
+	OpenGLVertexInputLayoutResource(const VertexInputLayout& pLayout) : VertexInputLayoutRHI(pLayout)
 	{
 		glGenVertexArrays(1, &mVAO); CHECKGLERROR;
 		glBindVertexArray(mVAO); CHECKGLERROR;

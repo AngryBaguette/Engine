@@ -127,14 +127,14 @@ GLuint fragShaderID;
 GLuint programID;
 
 
-VertexShaderResourcePtr rhi_vert;
-FragmentShaderResourcePtr rhi_frag;
-ProgramResourcePtr rhi_prog;
+VertexShaderRHIPtr rhi_vert;
+FragmentShaderRHIPtr rhi_frag;
+ProgramRHIPtr rhi_prog;
 
-VertexBufferResourcePtr rhi_vbo;
-IndexBufferResourcePtr rhi_ibo;
+VertexBufferRHIPtr rhi_vbo;
+IndexBufferRHIPtr rhi_ibo;
 
-VertexInputLayoutResourcePtr rhi_layout;
+VertexInputLayoutRHIPtr rhi_layout;
 VertexAttributeDesc rhi_vbo_desc = VertexAttributeDesc(EVertexAttributeFormat::Float3, 0, 12, 0);
 
 
