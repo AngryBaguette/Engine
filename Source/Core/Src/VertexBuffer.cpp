@@ -44,7 +44,7 @@ void VertexBuffer::setAttributeValue(ESemantic pSemantic, uint32_t pIndex, const
 		uint32_t lAttributeSize = TranslateVertexAttributeFormatToByte(lItr->mFormat);
 		for (uint32_t i = 0; i < pCount; ++i)
 		{
-			Memory::Memcpy(mData->data() + lItr->mOffset + (pIndex + i)*mVertexSize, pDataValue + (i*mVertexSize), lAttributeSize);
+			Memory::Memcpy(mData->data() + lItr->mOffset + (pIndex + i)*mVertexSize, pDataValue + (i*lAttributeSize), lAttributeSize);
 		}
 	}
 }

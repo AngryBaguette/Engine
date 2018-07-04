@@ -68,3 +68,4 @@ protected:
 	OpenGLFragmentShaderResourcePtr mFragmentShader;
 	GLuint mHandle;
 };
+

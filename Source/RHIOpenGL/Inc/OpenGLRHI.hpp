@@ -15,6 +15,9 @@ public:
 	static void CheckError(const char* pFile, int32_t pLine);
 
 public:
+
+	virtual void RHIDebug(ProgramRHIPtr& pProgram) override final;
+
 	virtual void RHIClear(bool pColor, const glm::vec4& pClearColor, bool pDepth, float pDepthValue, bool pStencil, uint32_t pStencilValue) override final;
 	virtual void RHISetScissor(bool pEnable, const glm::i32vec4& pRect) override final;
 	virtual void RHISetViewport(const glm::i32vec4& pViewport, const glm::vec2& pDepthRange) override final;
@@ -29,6 +32,8 @@ public:
 	virtual VertexShaderRHIPtr RHICreateVertexShader(const std::string& pSource) override final;
 	virtual FragmentShaderRHIPtr RHICreateFragmentShader(const std::string& pSource) override final;
 	virtual ProgramRHIPtr RHICreateProgram(VertexShaderRHIPtr& pVertex, FragmentShaderRHIPtr& pFragment) override final;
+
+	virtual UniformBufferRHI* RHICreateUniformBuffer() override final;
 	virtual void RHISetProgram(ProgramRHIPtr& pProgram) override final;
 
 	virtual void RHIDrawIndexedPrimitive(EPrimitiveType pType, uint32_t pStartIndex, uint32_t pCount, uint32_t pNumInstances = 1) override final;

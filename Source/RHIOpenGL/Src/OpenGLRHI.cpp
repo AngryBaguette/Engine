@@ -13,9 +13,9 @@ IDynamicRHI* CreateDynamicRHI()
 	GLenum err = glewInit();
 	assert(err == GLEW_OK);
 
-	if (GLEW_VERSION_4_1)
+	if (GLEW_VERSION_4_3)
 	{
-		std::cout << "Driver supports OpenGL 4.1\nDetails:" << std::endl;
+		std::cout << "Driver supports OpenGL 4.3\nDetails:" << std::endl;
 	}
 
 	if
@@ -53,6 +53,8 @@ void OpenGLRHI::CheckError(const char* pFile, int32_t pLine)
 		{
 			std::cout << messageLog + offset << std::endl;
 			offset += lengths[i];
+
+			assert(lSeverities[i] != GL_DEBUG_SEVERITY_HIGH);
 		}
 	}
 }
@@ -165,11 +167,61 @@ FragmentShaderRHIPtr OpenGLRHI::RHICreateFragmentShader(const std::string& pSour
 	return resource;
 }
 
+
+/************************************************************************/
+UniformBufferRHI* OpenGLRHI::RHICreateUniformBuffer()
+{
+	return nullptr;
+}
+
+/************************************************************************/
+void OpenGLRHI::RHIDebug(ProgramRHIPtr& pProgram)
+{
+
+// https://www.khronos.org/opengl/wiki/Example_Code
+//void RHIGetUniforms(ProgramRHIPtr& pProgram)
+
+	OpenGLProgramResource* program = static_cast<OpenGLProgramResource*>(pProgram.get());
+
+	GLint numUniforms = 0;
+	glGetProgramInterfaceiv(program->handle(), GL_UNIFORM, GL_ACTIVE_RESOURCES, &numUniforms);
+
+	const GLenum properties[5] = { GL_BLOCK_INDEX, GL_TYPE, GL_OFFSET, GL_NAME_LENGTH, GL_LOCATION };
+
+	for (int i = 0; i < numUniforms; ++i)
+	{
+		GLint values[5];
+		glGetProgramResourceiv(program->handle(), GL_UNIFORM, i, 5, properties, 5, NULL, values);
+
+		//Skip any uniforms that are in a block.
+		if (values[0] != -1)
+		{
+			// UBO
+		}
+		else
+		{
+			// Uniform
+
+			//Get the name. Must use a std::vector rather than a std::string for C++03 standards issues.
+			//C++11 would let you use a std::string directly.
+			std::vector<char> nameData(values[3]);
+			glGetProgramResourceName(program->handle(), GL_UNIFORM, i, nameData.size(), NULL, &nameData[0]);
+			std::string name(nameData.begin(), nameData.end() - 1);
+		}
+	}
+}
+ 
 /************************************************************************/
 ProgramRHIPtr OpenGLRHI::RHICreateProgram(VertexShaderRHIPtr & pVertex, FragmentShaderRHIPtr & pFragment)
 {
 	OpenGLProgramResource* resource = new OpenGLProgramResource(static_cast<OpenGLVertexShaderResource*>(pVertex.get()), static_cast<OpenGLFragmentShaderResource*>(pFragment.get()));
 	bool lSuccess = resource->linkShader();
+
+	// DEBUG TO REMOVE
+	ProgramRHIPtr prog = resource;
+	
+	RHIDebug(prog);
+
 	return resource;
 }
 
@@ -208,5 +260,6 @@ VertexInputLayoutRHIPtr OpenGLRHI::RHICreateVertexInputLayout(const VertexInputL
 void OpenGLRHI::RHISetVertexInputLayout(VertexInputLayoutRHIPtr& pLayout)
 {
 	OpenGLVertexInputLayoutResource* resource = static_cast<OpenGLVertexInputLayoutResource*>(pLayout.get());
-	glBindVertexArray(resource->handle());
+	resource->set();
 }
+

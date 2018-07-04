@@ -11,8 +11,13 @@
 
 #include <GL/glew.h>
 #include <GL/freeglut.h>
-#include <glm/glm.hpp>
 
+
+#include <glm/glm.hpp>
+// translate, rotate, scale, perspective
+#include <glm/gtc/matrix_transform.hpp>
+// value_ptr
+#include <glm/gtc/type_ptr.hpp>
 
 #include <vector>
 #include <iostream>
@@ -22,6 +27,26 @@
 #define SHADER_DIR "C:\\Dev\\GitHub\\Engine\\Shader\\"
 
 #define CHECKGLERROR CheckGLError(__FILE__, __LINE__)
+
+struct Mouse
+{
+	int32_t x, y;
+	int32_t leftButton : 1;
+	int32_t rightButton : 1;
+	int32_t middleButton : 1;
+};
+
+
+struct Camera
+{
+	glm::mat4x4 Viewpoint;
+	glm::mat4x4 Projection;
+};
+
+
+Camera gCamera;
+Mouse gMouse;
+
 
 /************************************************************************/
 static void CheckGLError(const char* pFile, int32_t pLine)
@@ -137,19 +162,26 @@ IndexBufferRHIPtr rhi_ibo;
 VertexInputLayoutRHIPtr rhi_layout;
 VertexAttributeDesc rhi_vbo_desc = VertexAttributeDesc(EVertexAttributeFormat::Float3, 0, 12, 0);
 
-
-
 /*****************************************************************************/
 bool initScene()
 {
 	glm::vec3 position = { -0.25f, -0.25f, 0.0f };
 
+	// Format P3fC3f
 	Array< glm::vec3 > vertices =
 	{
 		{ -0.25f, -0.25f, 0.0f },
 		{ -0.25f, 0.25f, 0.0f },
 		{ 0.25f, 0.25f, 0.0f },
-		{ 0.25F, -0.25F, 0.0f }
+		{ 0.25F, -0.25F, 0.0f}
+	};
+
+	Array< glm::vec3 > colors = 
+	{
+		{ 1.0f, 0.0f, 0.0f },
+		{ 0.0f, 1.0f, 0.0f },
+		{ 0.0f, 0.0f, 1.0f },
+		{ 1.0f, 1.0f, 1.0f }
 	};
 
 	Array< uint16_t > indexes =
@@ -158,47 +190,13 @@ bool initScene()
 		2, 3, 0
 	};
 
-	/*
-	// Shader compilation
-	{
-		vertShaderID = compileShader(SHADER_DIR "simple.vert", GL_VERTEX_SHADER);
-		fragShaderID = compileShader(SHADER_DIR "simple.frag", GL_FRAGMENT_SHADER);
-	}
-
-	// Link shader
-	{
-		programID = glCreateProgram();
-		glAttachShader(programID, vertShaderID);
-		glAttachShader(programID, fragShaderID);
-		glLinkProgram(programID);
-		bool success = CheckProgramLinkStatus(programID); assert(success);
-	}
-	
-
-	glGenBuffers(1, &vbo); CHECKGLERROR;
-	glBindBuffer(GL_ARRAY_BUFFER, vbo); CHECKGLERROR;
-	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * vertices.count(), vertices.data(), GL_STATIC_DRAW); CHECKGLERROR;
-
-	glGenBuffers(1, &ibo); CHECKGLERROR;
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo); CHECKGLERROR;
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint16_t) * indexes.count(), indexes.data(), GL_STATIC_DRAW); CHECKGLERROR;
-
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-	{
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glEnableVertexAttribArray(positionSlot);
-		glVertexAttribPointer(positionSlot, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
-
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-	}
-	glBindVertexArray(0);
-	*/
 
 	VertexBufferPtr lVB = VertexBuffer::create();
 	lVB->addAttribute(VertexBuffer::ESemantic::Position, EVertexAttributeFormat::Float3);
+	lVB->addAttribute(VertexBuffer::ESemantic::Color, EVertexAttributeFormat::Float3);
 	lVB->setNumOfVertices(vertices.count());
 	lVB->setAttributeValue(VertexBuffer::ESemantic::Position, 0, (uint8_t*)vertices.data(), vertices.count());
+	lVB->setAttributeValue(VertexBuffer::ESemantic::Color, 0, (uint8_t*)colors.data(), colors.count());
 	
 
 	// RHI sample
@@ -221,7 +219,11 @@ bool initScene()
 	VertexInputLayout lLayout;
 	lLayout.setIndexBuffer(rhi_ibo);
 	lLayout.addVertexBuffer(rhi_vbo);
-	lLayout.addAttribute(rhi_vbo_desc);
+	//lLayout.addAttribute(rhi_vbo_desc);
+
+	lLayout.addAttribute( VertexAttributeDesc(EVertexAttributeFormat::Float3, 0, 12, 0) );
+	lLayout.addAttribute(VertexAttributeDesc(EVertexAttributeFormat::Float3, 12, 12, 0));
+
 	rhi_layout = RHICreateVertexInputLayout(lLayout);
 
 
@@ -242,13 +244,14 @@ bool initScene()
 
 
 /*****************************************************************************/
-void resize(int pWidth, int pHeight)
+void resizeEvent(int pWidth, int pHeight)
 {
-	RHISetViewport(glm::i32vec4(0, 0, pWidth, pHeight), glm::vec2(0, 1));
+	RHISetViewport(glm::i32vec4(0, 0, pWidth, pHeight), glm::vec2(0.0f, 1.0f));
+	gCamera.Projection = glm::perspective(45.0f, (float)pWidth / (float)pHeight, 1.0f, 100.0f);
 }
 
 /*****************************************************************************/
-void render()
+void renderEvent()
 {
 	RHIClear(true, glm::vec4(0, 0, 0, 0), true, 0.0f, false, 0);
 	
@@ -262,6 +265,11 @@ void render()
 
 
 	RHISetProgram(rhi_prog);
+
+	//RHIExtractUniform
+	//RHIExtractUniformBuffer etc..
+	//RHIExtractAttribute
+
 	RHISetVertexInputLayout(rhi_layout);
 	RHIDrawIndexedPrimitive(EPrimitiveType::Triangles, 0, 2);
 
@@ -269,9 +277,39 @@ void render()
 }
 
 /*****************************************************************************/
-void idle()
+void idleEvent()
 {
-	render();
+	glutPostRedisplay();
+}
+
+/*****************************************************************************/
+void mouseButtonEvent(int button, int state, int x, int y)
+{
+	switch
+		(button)
+	{
+	case GLUT_LEFT_BUTTON: gMouse.leftButton = state; break;
+	case GLUT_RIGHT_BUTTON: gMouse.rightButton = state; break;
+	default:
+		break;
+	}
+
+	gMouse.x = x;
+	gMouse.y = y;
+}
+
+/*****************************************************************************/
+void mouseMoveEvent(int x, int y)
+{
+	int deltaX = x - gMouse.x;
+	int deltaY = y - gMouse.y;
+
+	if (gMouse.leftButton)
+	{
+	}
+
+	gMouse.x = x;
+	gMouse.y = y;
 }
 
 /*****************************************************************************/
@@ -284,22 +322,23 @@ int main(int argc, char** argv)
 	glutInitWindowSize(640, 480);
 	glutInitWindowPosition(10, 10);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
-	glutInitContextVersion(3, 2);
+	//glutInitContextVersion(4, 3);
+	//glutInitContextVersion(3, 2);
+	glutInitContextVersion(3, 1);
 	glutInitContextFlags(GLUT_CORE_PROFILE | GLUT_DEBUG);
 
 	glutCreateWindow("GLUT Viewer");
 
-	glutDisplayFunc(render);
-	glutIdleFunc(idle);
-	glutReshapeFunc(resize);
-
+	glutDisplayFunc(renderEvent);
+	glutIdleFunc(idleEvent);
+	glutReshapeFunc(resizeEvent);
+	glutMouseFunc(mouseButtonEvent);
+	glutMotionFunc(mouseMoveEvent);
 
 	// At the moment OpenGLRHI used glew and glew use an OpenGL Context...
 	IDynamicRHI* lRenderer = IDynamicRHI::DynamicLoadRenderer("OpenGL");
 	assert(lRenderer);
 	IDynamicRHI::SetRenderer(lRenderer);
-
-
 
 	GLenum err = glewInit();
 	assert(err == GLEW_OK);
@@ -313,11 +352,7 @@ int main(int argc, char** argv)
 		glEnable(GL_DEBUG_OUTPUT);
 	}
 
-
-
 	initScene();
-
 	glutMainLoop();
-
 	return 0;
 }

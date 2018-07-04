@@ -1,6 +1,10 @@
-#version 330 core
-out vec4 oFragColor;
+#version 150 core
 
-void main(){
-  oFragColor = vec4(1,0,0,1);
+in vec3 vColor;
+
+
+void main()
+{
+  //gl_FragData[0] = vec4(vColor*2,1);
+  gl_FragData[0] = vec4(1,0,0,1);
 }

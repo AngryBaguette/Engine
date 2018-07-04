@@ -3,7 +3,10 @@
 #include <RHIResource.hpp>
 #include <GL/glew.h>
 
+
 #define BUFFER_OFFSET(x) ((void*)((uint64_t)(x)))
+
+#define	BUFFER_ARRAY_OFFSET(pBase, pOffset)	((void*)(((uint8_t*)(pBase)) + pOffset))
 
 static uint32_t TranslatePrimitiveTypeSize(EPrimitiveType pType, uint32_t pCount)
 {
@@ -61,6 +64,8 @@ public:
 
 		glBufferData(Target, mSize, pData, getUsage());
 		CHECKGLERROR;
+
+		mData = pData;
 	}
 
 	/* Create the Buffer */
@@ -76,6 +81,8 @@ public:
 
 		glBufferData(Target, mSize, pData, getUsage());
 		CHECKGLERROR;
+
+		mData = pData;
 	}
 
 	/* Access the buffer */
@@ -103,6 +110,10 @@ public:
 	/** Get the opengl handle of the buffer */
 	FORCEINLINE GLuint handle() const { return mBuffer; }
 
+
+	// BULLSHIT for test, data lifetime are not managed
+	const void* mData;
+
 protected:
 
 	/* Convert to GL Usage enum */
@@ -127,6 +138,7 @@ protected:
 };
 typedef OpenGLBufferResource<VertexBufferRHI, GL_ARRAY_BUFFER> OpenGLVertexBufferResource;
 typedef OpenGLBufferResource<IndexBufferRHI, GL_ELEMENT_ARRAY_BUFFER> OpenGLIndexBufferResource;
+typedef OpenGLBufferResource<UniformBufferRHI, GL_UNIFORM_BUFFER> OpenGLUniformBufferResource;
 
 
 
@@ -138,12 +150,58 @@ public:
 		glGenVertexArrays(1, &mVAO); CHECKGLERROR;
 		glBindVertexArray(mVAO); CHECKGLERROR;
 
+		internalSet();
+
+		glBindVertexArray(0); CHECKGLERROR;
+	}
+
+	void internalSet()
+	{
 		// Bind Vertex buffer
 		// Assume attribute are sored by vertex buffer index
 		for (size_t i = 0; i < mLayout.mVertexBuffers.count(); ++i)
 		{
 			OpenGLVertexBufferResource* lVB = static_cast<OpenGLVertexBufferResource*>(mLayout.mVertexBuffers[i].first.get());
 			glBindBuffer(GL_ARRAY_BUFFER, lVB->handle()); CHECKGLERROR;
+
+			for (size_t j = 0; j < mLayout.mAttributes.count(); ++j)
+			{
+				const VertexAttributeDesc& attr = mLayout.mAttributes[j].first;
+				//GLuint bindingPoint = mLayout.mAttributes[j].second;
+#pragma message("bullshit here, need debug")
+				GLuint bindingPoint = j; 
+				glEnableVertexAttribArray(bindingPoint); CHECKGLERROR;
+
+				GLenum lType;
+				GLint lSize;
+				GLboolean lIsNormalized;
+				TranslateVertexAttributeFormat(attr.mFormat, lType, lSize, lIsNormalized);
+				glVertexAttribPointer(bindingPoint, lSize, lType, lIsNormalized, attr.mStride, BUFFER_OFFSET(attr.mOffset)); CHECKGLERROR;
+				if (glVertexAttribDivisor)
+					glVertexAttribDivisor(bindingPoint, attr.mDivisor); CHECKGLERROR;
+			}
+		}
+
+		// Bind index buffer
+		if (mLayout.mIndexBuffer)
+		{
+			OpenGLIndexBufferResource* lIB = static_cast<OpenGLIndexBufferResource*>(mLayout.mIndexBuffer.get());
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, lIB->handle()); CHECKGLERROR;
+		}
+	}
+
+
+	void internalSetNoVAO()
+	{
+		glBindBuffer(GL_ARRAY_BUFFER, 0); CHECKGLERROR;
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); CHECKGLERROR;
+
+		// Bind Vertex buffer
+		// Assume attribute are sored by vertex buffer index
+		for (size_t i = 0; i < mLayout.mVertexBuffers.count(); ++i)
+		{
+			OpenGLVertexBufferResource* lVB = static_cast<OpenGLVertexBufferResource*>(mLayout.mVertexBuffers[i].first.get());
+			//glBindBuffer(GL_ARRAY_BUFFER, lVB->handle()); CHECKGLERROR;
 
 			for (size_t j = 0; j < mLayout.mAttributes.count(); ++j)
 			{
@@ -155,8 +213,10 @@ public:
 				GLint lSize;
 				GLboolean lIsNormalized;
 				TranslateVertexAttributeFormat(attr.mFormat, lType, lSize, lIsNormalized);
-				glVertexAttribPointer(bindingPoint, lSize, lType, lIsNormalized, attr.mStride, BUFFER_OFFSET(attr.mOffset)); CHECKGLERROR;
-				if(glVertexAttribDivisor)
+
+
+				glVertexAttribPointer(bindingPoint, lSize, lType, lIsNormalized, attr.mStride, BUFFER_ARRAY_OFFSET(lVB->mData, attr.mOffset)); CHECKGLERROR;
+				if (glVertexAttribDivisor)
 					glVertexAttribDivisor(bindingPoint, attr.mDivisor); CHECKGLERROR;
 			}
 		}
@@ -165,11 +225,22 @@ public:
 		if (mLayout.mIndexBuffer)
 		{
 			OpenGLIndexBufferResource* lIB = static_cast<OpenGLIndexBufferResource*>(mLayout.mIndexBuffer.get());
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, lIB->handle()); CHECKGLERROR;
+			//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, lIB->handle()); CHECKGLERROR;
 		}
+	}
 
-
-		glBindVertexArray(0); CHECKGLERROR;
+	void set()
+	{
+		static const bool useVAO = true;
+		if
+			(useVAO)
+		{
+			glBindVertexArray(mVAO); CHECKGLERROR;
+		}
+		else
+		{
+			internalSetNoVAO();
+		}
 	}
 
 	GLuint handle() const { return mVAO;  }

@@ -140,6 +140,22 @@ protected:
 typedef RefPointer<IndexBufferRHI> IndexBufferRHIPtr;
 
 
+/** **/
+class Core_EXPORT UniformBufferRHI : public RHIResource
+{
+public:
+	/* Constructor */
+	UniformBufferRHI(uint32_t pSize) : mSize(pSize) {}
+
+
+	/* Get the data size */
+	uint32_t getSize() const { return mSize; }
+
+protected:
+	uint32_t    mSize;
+};
+typedef RefPointer<UniformBufferRHI> UniformBufferRHIPtr;
+
 class Core_EXPORT VertexShaderRHI : public RHIResource
 {
 
